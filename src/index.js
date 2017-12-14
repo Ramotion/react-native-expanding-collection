@@ -6,6 +6,7 @@ import {
   Dimensions
 } from 'react-native';
 import { LinearGradient } from 'expo';
+import PropTypes from 'prop-types';
 
 import Pagination from './components/Pagination';
 import Header from './components/Header';
@@ -20,6 +21,12 @@ import Carousel from './components/Carousel';
 import { icons } from './constants';
 
 export default class ExpandingCollection extends Component {
+  static get propTypes() {
+    return {
+      data: PropTypes.array.isRequired
+    }
+  };
+
   constructor(props) {
     super(props);
 

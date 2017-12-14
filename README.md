@@ -9,53 +9,66 @@
 Look it in folder `./example`
 
 ```javascript
-import React, {Component} from 'react'
-import CircleMenu from '@ramotion/react-native-circle-menu'
+import React, { Component } from 'react';
+import ExpandingCollection from '@ramotion/react-native-expanding-collection';
 
 class Example extends Component {
     items = [
       {
-        name: 'md-home',
-        color: '#298CFF'
+        id: '654831654',
+        name: 'New York',
+        img: 'https://media-cdn.tripadvisor.com/media/photo-s/0e/9a/e3/1d/freedom-tower.jpg',
+        blob: 'New York is a beautiful',
+        rating: 4,
+        reviews: [
+          {
+            userName: 'Ebbe Ugwu',
+            userAvatar: 'https://randomuser.me/api/portraits/men/83.jpg',
+            review: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis...',
+            date: 'FEB 14th',
+          }, {
+            userName: 'Jakob Merquier',
+            userAvatar: 'https://randomuser.me/api/portraits/men/46.jpg',
+            review: ' aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+            date: 'JUL 8th'
+          },
+        ],
+        coordinates: [40.785091, 'North', -73.968285, 'West']
       },
       {
-        name: 'md-search',
-        color: '#30A400'
-      },
-      {
-        name: 'md-time',
-        color: '#FF4B32'
-      },
-      {
-        name: 'md-settings',
-        color: '#8A39FF'
-      },
-      {
-        name: 'md-navigate',
-        color: '#FF6A00'
+       id: '32164893',
+        name: 'London',
+        img: 'https://i.ytimg.com/vi/7BymziTFM2E/maxresdefault.jpg',
+        blob: 'The buzzing heart of Great Britain',
+        rating: 5,
+        reviews: [
+          {
+            userName: 'Monique Shultz',
+            userAvatar: 'https://randomuser.me/api/portraits/women/6.jpg',
+            review: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis...',
+            date: 'APR 15th'
+          }
+        ],
+        coordinates: [51.509865, 'North', -0.118092, 'West']
       }
     ];
     
-    onPress = index => console.warn(`${this.items[index].name} icon pressed!`);
-    
     render() {
-    	return <CircleMenu
-            bgColor="#E74C3C"
-            items={this.items}
-            onPress={this.onPress}
+    	return (
+        <ExpandingCollection
+          data={this.items}
         />
+      );
     }
 }
+
+
 ```
 
 ## Props
 | Name | Description | Type | Required | Default Value |
 | :--- | :----- | :--- | :---: | :---: |
-| active | Menu is active | Boolean |  | `false` |
-| bgColor | The background color of the menu | String |  | `#0E1329` |
-| itemSize | The size of menu elements | Number |  | `60` |
-| radius | The circle radius | Number |  | `150` |
-| onPress | The function that called when pressed on menu item | Function |  |  |
+| data | Information about cards | Array | + |  |
 
 ## Licence
 

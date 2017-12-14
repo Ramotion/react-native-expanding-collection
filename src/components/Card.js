@@ -343,7 +343,6 @@ export default class Card extends Component {
   })
 
   backCardStyle = y => ({
-    zIndex: 10,
     height: y.interpolate({
       inputRange: [-200, -199, -150, -101, -100, -99, -1, 0, 1],
       outputRange: [undefined, undefined, itemHeight / 2, values.open.infoHeight, values.open.infoHeight, values.open.infoHeight, 0, 0, 0],
