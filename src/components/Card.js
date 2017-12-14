@@ -18,7 +18,7 @@ import Pagination from './Pagination';
 import Header from './Header';
 import AnimatedBackground from './AnimatedBackground';
 
-import { icons } from '../../constants';
+import { icons } from '../constants';
 const { width, height } = Dimensions.get('window');
 
 export const horizontalMargin = 10;

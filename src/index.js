@@ -7,15 +7,15 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo';
 
-import Pagination from './src/Pagination';
-import Header from './src/Header';
+import Pagination from './components/Pagination';
+import Header from './components/Header';
 import Card, {
   CARD_STATUS,
   itemWidth,
   sliderWidth,
   horizontalMargin,
-} from './src/Card';
-import Carousel from './src/Carousel';
+} from './components/Card';
+import Carousel from './components/Carousel';
 
 import { icons } from '../constants';
 

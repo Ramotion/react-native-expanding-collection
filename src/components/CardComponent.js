@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { MapView } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 
-import { icons } from '../../constants';
+import { icons } from '../constants';
 import { treshholds } from './Card';
 
 const { width } = Dimensions.get('window');

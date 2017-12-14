@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 
-import { icons } from '../../constants';
+import { icons } from '../constants';
 
 const { width } = Dimensions.get('window');
 

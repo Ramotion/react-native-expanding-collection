@@ -2,11 +2,9 @@ import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { AppLoading, Asset } from 'expo';
 
-import ExpandingCollection from './expanding-collection';
+import ExpandingCollection from '@ramotion/react-native-expanding-collection';
 
 import { cities } from './constants';
-
-// console.disableYellowBox = true;
 
 const cacheImages = images => {
   return images.map(image => {

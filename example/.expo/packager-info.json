@@ -1,0 +1,8 @@
+{
+  "expoServerPort": 19000,
+  "packagerPort": 19001,
+  "packagerPid": 1802,
+  "expoServerNgrokUrl": "https://cn-g7c.mikhail-sh.example.exp.direct",
+  "packagerNgrokUrl": "https://packager.cn-g7c.mikhail-sh.example.exp.direct",
+  "ngrokPid": 1819
+}
