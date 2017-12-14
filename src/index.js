@@ -17,7 +17,7 @@ import Card, {
 } from './components/Card';
 import Carousel from './components/Carousel';
 
-import { icons } from '../constants';
+import { icons } from './constants';
 
 export default class ExpandingCollection extends Component {
   constructor(props) {

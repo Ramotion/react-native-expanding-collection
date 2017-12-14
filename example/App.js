@@ -22,13 +22,11 @@ export default class App extends React.Component {
   };
 
   componentWillMount() {
-    this.loadAssetsAsync()
+    this.loadAssetsAsync();
   }
 
   async loadAssetsAsync() {
-    const imageAssets = cacheImages(
-      cities.map(city => city.img)
-    );
+    const imageAssets = cacheImages(cities.map(city => city.img));
     
     await Promise.all([...imageAssets]);
     
