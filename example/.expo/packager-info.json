@@ -1,8 +1,8 @@
 {
   "expoServerPort": 19001,
-  "packagerPort": 19002,
-  "packagerPid": 2953,
+  "packagerPort": 19003,
+  "packagerPid": 3276,
   "expoServerNgrokUrl": "https://9y-7pe.mobiledevnativecross.example.exp.direct",
   "packagerNgrokUrl": "https://packager.9y-7pe.mobiledevnativecross.example.exp.direct",
-  "ngrokPid": 2965
+  "ngrokPid": 3288
 }
