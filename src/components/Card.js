@@ -275,34 +275,40 @@ export default class Card extends Component {
           </TouchableOpacity>
         </Animated.View>
         <Animated.View style={this.backCardStyle(y)}>
-          <BasicInfo
-            y={y}
-            blob={blob}
-            latitude={firstCoord}
-            longitude={secondCoord}
-          />
-          <ReviewsHeader
-            y={y}
-            blob={blob}
-            id={id}
-            rating={rating}
-            latitude={firstCoord}
-            longitude={secondCoord}
-            isShowMap={isShowMap}
-          />
-          <Stars
-            y={y}
-            rating={rating}
-            id={id}
-          />
-          <Users
-            y={y}
-            reviews={reviews}
-          />
-          <Reviews
-            y={y}
-            reviews={reviews}
-          />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => this.handlePress(index)}
+          >
+            <BasicInfo
+              y={y}
+              blob={blob}
+              latitude={firstCoord}
+              longitude={secondCoord}
+            />
+            <ReviewsHeader
+              y={y}
+              blob={blob}
+              id={id}
+              rating={rating}
+              latitude={firstCoord}
+              longitude={secondCoord}
+              isShowMap={isShowMap}
+            />
+            <Stars
+              y={y}
+              rating={rating}
+              id={id}
+            />
+            <Users
+              y={y}
+              reviews={reviews}
+            />
+            <Reviews
+              y={y}
+              reviews={reviews}
+            />
+          </TouchableOpacity>
         </Animated.View>
       </Animated.ScrollView>
     );

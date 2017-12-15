@@ -27,16 +27,18 @@ export default class App extends React.Component {
 
   async loadAssetsAsync() {
     const imageAssets = cacheImages(cities.map(city => city.img));
-    
     await Promise.all([...imageAssets]);
-    
-    this.setState({ isReady: true })
   }
 
   render() {
     const { isReady } = this.state;
 
-    if (!isReady) return <AppLoading />;
+    if (!isReady) return (
+      <AppLoading
+        startAsync={this.loadAssetsAsync}
+        onFinish={() => this.setState({ isReady: true })}
+      />
+    );
 
     return (
       <ExpandingCollection
