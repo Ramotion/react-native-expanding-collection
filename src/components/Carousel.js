@@ -32,7 +32,6 @@ export default class Carousel extends Component {
       slideStyle: Animated.View.propTypes.style,
       shouldOptimizeUpdates: PropTypes.bool,
       snapOnAndroid: PropTypes.bool,
-      swipeThreshold: PropTypes.number,
       onScrollViewScroll: PropTypes.func,
       onSnapToItem: PropTypes.func
     };
@@ -59,7 +58,7 @@ export default class Carousel extends Component {
       slideStyle: {},
       shouldOptimizeUpdates: true,
       snapOnAndroid: true,
-      swipeThreshold: 20
+      swipeThreshold: 80
     };
   }
 
@@ -202,7 +201,7 @@ export default class Carousel extends Component {
 
     this._children(props).map((item, index) => {
       const _index = this._getCustomIndex(index, props);
-      
+
       this._positions[index] = {
         start: _index * sizeRef,
         end: _index * sizeRef + sizeRef
@@ -380,7 +379,7 @@ export default class Carousel extends Component {
 
   _onLayout(event) {
     const { onLayout } = this.props;
-    
+
     this._calcCardPositions();
     this.snapToItem(this.currentIndex, false, false);
 
@@ -398,25 +397,23 @@ export default class Carousel extends Component {
 
     if (this._scrollStartActive !== this._scrollEndActive) {
       this._isShortSnapping = false;
-      
+
       this.snapToItem(this._scrollEndActive);
     } else {
       this._isShortSnapping = true;
-      
+
       if (delta > 0) {
         if (delta > swipeThreshold) {
-          this.snapToItem(this._scrollStartActive - 1);
+          this.snapToItem(this._scrollEndActive + 1);
         } else {
           this.snapToItem(this._scrollEndActive);
         }
       } else if (delta < 0) {
         if (delta < -swipeThreshold) {
-          this.snapToItem(this._scrollStartActive + 1);
+          this.snapToItem(this._scrollStartActive - 1);
         } else {
           this.snapToItem(this._scrollEndActive);
         }
-      } else {
-        this.snapToItem(this._scrollEndActive);
       }
     }
   }
@@ -486,7 +483,7 @@ export default class Carousel extends Component {
           }
         }, Math.max(200, scrollEndDragDebounceValue + 50));
       }
-      
+
       this._scrollview.scrollTo({
         x: snapTo,
         y: 0,

@@ -60,8 +60,7 @@ export default class Card extends Component {
     super(props);
 
     this.state = {
-      status: CARD_STATUS.CLOSED,
-      isShowMap: false
+      status: CARD_STATUS.CLOSED
     };
   }
 
@@ -165,7 +164,7 @@ export default class Card extends Component {
       }),
       ...animations
     ]).start(() => {
-      this.setState({ status: CARD_STATUS.FULL, isShowMap: true });
+      this.setState({ status: CARD_STATUS.FULL });
     });
   }
 
@@ -173,7 +172,6 @@ export default class Card extends Component {
     const { animatedValue } = this.props;
     const { onFullToOpen, paginationLength, opacityValues } = this.props;
 
-    this.setState({ isShowMap: false });
     onFullToOpen();
 
     const animations = [];
@@ -200,7 +198,7 @@ export default class Card extends Component {
   }
 
   render() {
-    const { status, isShowMap } = this.state;
+    const { status } = this.state;
     const { data, index, paginationIndex } = this.props;
     const y = this.props.animatedValue;
     const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
@@ -293,7 +291,6 @@ export default class Card extends Component {
               rating={rating}
               latitude={firstCoord}
               longitude={secondCoord}
-              isShowMap={isShowMap}
             />
             <Stars
               y={y}
