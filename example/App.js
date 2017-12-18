@@ -18,6 +18,7 @@ const cacheImages = images => {
 }
 
 export default class App extends React.Component {
+
   state = {
     isReady: false,
   };
@@ -28,7 +29,7 @@ export default class App extends React.Component {
 
   async loadAssetsAsync() {
     const imageAssets = cacheImages(cities.map(city => city.img));
-    await Promise.all([...imageAssets]);
+    await Promise.all(imageAssets);
   }
 
   render() {
