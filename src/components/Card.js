@@ -60,7 +60,9 @@ export default class Card extends Component {
     super(props);
 
     this.state = {
-      status: CARD_STATUS.CLOSED
+      status: CARD_STATUS.CLOSED,
+      isReady: false,
+      scrolled: false,
     };
   }
 
@@ -158,13 +160,15 @@ export default class Card extends Component {
       }));
     }
 
+    this.setState({ scrolled: true });
+
     Animated.parallel([
       Animated.spring(animatedValue, {
         toValue: -200, friction: 10, velocity: 3
       }),
       ...animations
     ]).start(() => {
-      this.setState({ status: CARD_STATUS.FULL });
+      this.setState({ status: CARD_STATUS.FULL});
     });
   }
 
@@ -187,6 +191,8 @@ export default class Card extends Component {
       }));
     }
 
+    this.setState({ scrolled: false });
+
     Animated.parallel([
       Animated.spring(animatedValue, {
         toValue: -100, friction: 10, velocity: 3
@@ -198,7 +204,7 @@ export default class Card extends Component {
   }
 
   render() {
-    const { status } = this.state;
+    const { status, isReady, scrolled } = this.state;
     const { data, index, paginationIndex } = this.props;
     const y = this.props.animatedValue;
     const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
@@ -209,12 +215,13 @@ export default class Card extends Component {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         style={{
+          opacity: 1 * (+isReady),
           width: y.interpolate({
             inputRange: treshholds,
             outputRange: [width, itemWidth + (horizontalMargin * 2), itemWidth + (horizontalMargin * 2)]
           })
         }}
-        scrollEnabled={status === CARD_STATUS.FULL}
+        scrollEnabled={scrolled}
       >
         <Animated.View
           {...this._panResponder.panHandlers}
@@ -244,6 +251,7 @@ export default class Card extends Component {
                   outputRange: [0, borderRadius, borderRadius]
                 })
               }}
+              onLoadEnd={() => this.setState({ isReady: true })}
             >
               <View style={styles.cardFront}>
                 <Animated.Text
