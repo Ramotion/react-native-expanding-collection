@@ -114,10 +114,6 @@ export default class Card extends Component {
     if (status === CARD_STATUS.OPEN) {
       this.openCardFull(index);
     }
-
-    if (status === CARD_STATUS.FULL) {
-      this.hideCardFull(index);
-    }
   }
 
 

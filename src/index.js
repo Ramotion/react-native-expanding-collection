@@ -114,7 +114,8 @@ export default class ExpandingCollection extends Component {
           title="TOFIND"
           animatedValue={animatedValues[paginationIndex]}
           isCardFull={!dragEnabled}
-          onLocationPress={() => this.cards[paginationIndex].hideCardFull()}
+          onLocationPress={() => this.cards[paginationIndex].hideCardFull(paginationIndex)}
+          onClosePress={() => this.cards[paginationIndex].hideCardFull(paginationIndex)}
         />
         <Pagination
           index={paginationIndex + 1}

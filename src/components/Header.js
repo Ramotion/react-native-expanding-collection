@@ -20,14 +20,16 @@ class Header extends Component {
       title: PropTypes.string.isRequired,
       animatedValue: PropTypes.object.isRequired,
       isCardFull: PropTypes.bool,
-      onLocationPress: PropTypes.func
+      onLocationPress: PropTypes.func,
+      onClosePress: PropTypes.func
     };
   }
 
   static get defaultProps() {
     return {
       isCardFull: false,
-      onLocationPress: () => {}
+      onLocationPress: () => {},
+      onClosePress: () => {}
     };
   }
 
@@ -36,7 +38,8 @@ class Header extends Component {
       title,
       animatedValue,
       isCardFull,
-      onLocationPress
+      onLocationPress,
+      onClosePress
     } = this.props;
 
     return (
@@ -48,7 +51,13 @@ class Header extends Component {
         <Text style={styles.fontHeader}>
           { title }
         </Text>
-        <TouchableOpacity onPress={() => onLocationPress()}>
+        <TouchableOpacity onPress={() => {
+          if (isCardFull) {
+            onClosePress();
+          } else {
+            onLocationPress();
+          }
+        }}>
           <Animated.Image
             source={{ uri: isCardFull ? icons.closeIcon : icons.crosshairIcon }}
             style={[styles.headerIcon, {
