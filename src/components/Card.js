@@ -345,7 +345,7 @@ export default class Card extends Component {
     }),
     elevation: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, 10, isActive ? 10 : 0]
+      outputRange: [0, 0, isActive ? 10 : 0]
     })
   })
 

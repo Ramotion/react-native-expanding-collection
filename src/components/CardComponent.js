@@ -149,6 +149,9 @@ const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude }) => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421
         }}
+        scrollEnabled={false}
+        rotateEnabled={false}
+        zoomEnabled={false}
       />
       <Text
         style={{

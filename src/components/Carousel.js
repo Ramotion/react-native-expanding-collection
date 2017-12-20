@@ -70,7 +70,7 @@ export default class Carousel extends Component {
       activeItem: initialActiveItem,
       previousActiveItem: initialActiveItem,
       previousFirstItem: initialActiveItem,
-      interpolators: []
+      interpolators: [],
     };
 
     this._positions = [];
@@ -281,7 +281,6 @@ export default class Carousel extends Component {
     const newActiveItem = this._getActiveItem(scrollOffset);
     const itemsLength = this._positions.length;
     let animations = [];
-
     this._currentContentOffset = scrollOffset;
 
     if (enableMomentum) {
@@ -330,6 +329,9 @@ export default class Carousel extends Component {
   }
 
   _onScrollBeginDrag(event) {
+    this.setState({
+      changeIndexEnabled: false
+    });
     this._scrollStartOffset = this._getScrollOffset(event);
     this._scrollStartActive = this._getActiveItem(this._scrollStartOffset);
     this._ignoreNextMomentum = false;
@@ -353,7 +355,9 @@ export default class Carousel extends Component {
   }
 
   _onScrollEnd(event) {
-
+    this.setState({
+      changeIndexEnabled: true
+    })
     if (this._ignoreNextMomentum) {
       this._ignoreNextMomentum = false;
       return;
@@ -420,6 +424,11 @@ export default class Carousel extends Component {
 
   _onSnap(index) {
     const { enableMomentum, onSnapToItem } = this.props;
+    if (this.state.changeIndexEnabled) {
+      onSnapToItem && onSnapToItem(index);
+    }
+    onSnapToItem(index);
+    return
 
     const itemsLength = this._positions.length;
 
