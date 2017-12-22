@@ -3,9 +3,14 @@ import { ViewPagerAndroid, Dimensions, View, ScrollView, Animated, Platform, Eas
 import PropTypes from 'prop-types';
 import shallowCompare from 'react-addons-shallow-compare';
 import _debounce from 'lodash.debounce';
+import { LinearGradient } from 'expo';
 
 const IS_RTL = I18nManager.isRTL;
 const { width, height } = Dimensions.get('window');
+
+import Card from './Card';
+import Pagination from './Pagination';
+import Header from './Header';
 
 export default class Carousel extends Component {
 
@@ -71,8 +76,12 @@ export default class Carousel extends Component {
       previousActiveItem: initialActiveItem,
       previousFirstItem: initialActiveItem,
       interpolators: [],
+      animatedValues: [],
+      opacityValues: [],
+      dragEnabled: true,
     };
 
+    this.cards = [];
     this._positions = [];
     this._currentContentOffset = 0;
     this._hasFiredEdgeItemCallback = false;
@@ -102,6 +111,17 @@ export default class Carousel extends Component {
     if (props.onScrollViewScroll) {
       console.warn('react-native-snap-carousel: Prop `onScrollViewScroll` is deprecated. Please use `onScroll` instead');
     }
+  }
+
+  componentWillMount() {
+    const animatedValues = [], opacityValues = [];
+
+    this.props.data.forEach(() => {
+      animatedValues.push(new Animated.Value(0));
+      opacityValues.push(new Animated.Value(0));
+    });
+
+    this.setState({ opacityValues, animatedValues });
   }
 
   componentDidMount() {
@@ -138,18 +158,17 @@ export default class Carousel extends Component {
       this._calcCardPositions(nextProps);
       this._initInterpolators(nextProps);
 
-      this.setState({ activeItem: nextActiveItem });
-
       if (hasNewSliderWidth || hasNewSliderHeight || hasNewItemWidth || hasNewItemHeight ||
         (IS_RTL && !nextProps.vertical)) {
-        this.snapToItem(nextActiveItem, false, false);
+        this.snapToItem(nextActiveItem, true, false);
       }
+      this.setState({ activeItem: nextActiveItem });
     } else if (nextFirstItem !== previousFirstItem && nextFirstItem !== activeItem) {
+      this.snapToItem(nextFirstItem);
       this.setState({
         previousFirstItem: nextFirstItem,
         activeItem: nextFirstItem
       });
-      this.snapToItem(nextFirstItem);
     }
   }
 
@@ -423,18 +442,19 @@ export default class Carousel extends Component {
   }
 
   _onSnap(index) {
-    const { enableMomentum, onSnapToItem } = this.props;
+    const { enableMomentum } = this.props;
+    let closeIndex = this.state.previousActiveItem;
+
     if (this.state.changeIndexEnabled) {
-      onSnapToItem && onSnapToItem(index);
+      // this.onSnapToItem(index);
     }
-    onSnapToItem(index);
-    return
+    // this.onSnapToItem(index);
 
     const itemsLength = this._positions.length;
 
     if (this._scrollview) {
       if (enableMomentum) {
-        onSnapToItem && onSnapToItem(index);
+        // this.onSnapToItem(index);
       } else if (this._canFireCallback) {
         this._canFireCallback = false;
 
@@ -442,9 +462,11 @@ export default class Carousel extends Component {
           this._hasFiredEdgeItemCallback = true;
         }
 
-        onSnapToItem && onSnapToItem(index);
+        // this.onSnapToItem(index);
       }
     }
+
+    this.cards[closeIndex].closeCard();
   }
 
   snapToItem(index, animated = true, fireCallback = true, initial = false) {
@@ -452,6 +474,7 @@ export default class Carousel extends Component {
     const { enableMomentum, scrollEndDragDebounceValue } = this.props;
 
     const itemsLength = this._positions.length;
+    let closeIndex = previousActiveItem;
 
     if (!index) {
       index = 0;
@@ -503,6 +526,8 @@ export default class Carousel extends Component {
         this._ignoreNextMomentum = true;
       }
     }
+
+    // this.cards[closeIndex].closeCard();
   }
 
   snapToNext(animated = true) {
@@ -526,12 +551,14 @@ export default class Carousel extends Component {
   }
 
   _children(props = this.props) {
-    return React.Children.toArray(props.children);
+    return props.data;
   }
 
   _childSlides() {
     const { slideStyle, inactiveSlideScale, inactiveSlideOpacity, inactiveOpacityInterpolation } = this.props;
     const { activeItem } = this.state;
+    const { opacityValues, animatedValues } = this.state;
+    const { data } = this.props;
 
     if (!this.state.interpolators || !this.state.interpolators.length) {
       return false;
@@ -562,7 +589,20 @@ export default class Carousel extends Component {
               }]
             }
           ]}>
-          {child}
+          <Card
+            ref={ref => { this.cards[index] = ref; }}
+            key={child.id}
+            index={index}
+            paginationIndex={activeItem}
+            paginationLength={data.length}
+            animatedValue={animatedValues[index]}
+            opacityValues={opacityValues}
+            data={child}
+            onOpenToFull={() => { this.setState({ dragEnabled: false }); }}
+            onFullToOpen={() => { this.setState({ dragEnabled: true }); }}
+            enableScroll={() =>  this.enableScroll()}
+            disableScroll={() =>  this.disableScroll()}
+          />
         </Animated.View>
       );
     });
@@ -588,10 +628,21 @@ export default class Carousel extends Component {
       carouselVerticalPadding,
 
       sliderWidth,
-      scrollEnabled,
       animatedValue,
       data
     } = this.props;
+
+    const { 
+      interpolators,
+      activeItem,
+      animatedValues,
+      dragEnabled,
+    } = this.state;
+
+
+    if (interpolators.length <= 0) {
+      return null;
+    }
 
     const horizontalMargin = carouselHorizontalPadding || carouselHorizontalPadding === 0 ?
       carouselHorizontalPadding :
@@ -601,7 +652,7 @@ export default class Carousel extends Component {
       containerCustomStyle || {},
       {
         flexDirection: 'row',
-        paddingHorizontal: animatedValue.interpolate({
+        paddingHorizontal: animatedValues[activeItem].interpolate({
           inputRange: [-200, -100, 0],
           outputRange: [0, horizontalMargin, horizontalMargin]
         })
@@ -621,30 +672,47 @@ export default class Carousel extends Component {
     ];
 
     return (
-      <Animated.ScrollView
-        decelerationRate={0.9}
-        scrollEventThrottle={16}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        overScrollMode="never"
-        {...this.props}
-        ref={(ref) => { if (ref) { this._scrollview = ref._component; } }}
-        style={style}
-        contentContainerStyle={contentContainerStyle}
-        horizontal
-        alwaysBounceHorizontal
-        removeClippedSubviews={false}
-        scrollEnabled={scrollEnabled}
-        onScroll={this._onScroll}
-        onScrollBeginDrag={this._onScrollBeginDrag}
-        onScrollEndDrag={this._onScrollEndDrag}
-        onMomentumScrollEnd={this._onMomentumScrollEnd}
-        onResponderRelease={this._onTouchRelease}
-        onTouchStart={this._onTouchStart}
-        onLayout={this._onLayout}
+      <LinearGradient
+        colors={['#c7d0d9', '#a1acbe', '#91a2b6']}
+        style={{ flex: 1 }}
       >
-        {this._childSlides()}
-      </Animated.ScrollView>
+        <Animated.ScrollView
+          decelerationRate={0.9}
+          scrollEventThrottle={16}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+          {...this.props}
+          ref={(ref) => { if (ref) { this._scrollview = ref._component; } }}
+          style={style}
+          contentContainerStyle={contentContainerStyle}
+          horizontal
+          alwaysBounceHorizontal
+          removeClippedSubviews={false}
+          scrollEnabled={dragEnabled}
+          onScroll={this._onScroll}
+          onScrollBeginDrag={this._onScrollBeginDrag}
+          onScrollEndDrag={this._onScrollEndDrag}
+          onMomentumScrollEnd={this._onMomentumScrollEnd}
+          onResponderRelease={this._onTouchRelease}
+          onTouchStart={this._onTouchStart}
+          onLayout={this._onLayout}
+        >
+          {this._childSlides()}
+        </Animated.ScrollView>
+        <Header
+          title="TOFIND"
+          animatedValue={animatedValues[activeItem]}
+          isCardFull={!dragEnabled}
+          onLocationPress={() => this.cards[activeItem].hideCardFull(activeItem)}
+          onClosePress={() => this.cards[activeItem].hideCardFull(activeItem)}
+        />
+        <Pagination
+          index={activeItem + 1}
+          length={data.length}
+          animatedValue={animatedValues[activeItem]}
+        />
+      </LinearGradient>
     );
   }
 }

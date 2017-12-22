@@ -89,6 +89,7 @@ export default class Card extends Component {
 
     if (dy >= 40) {
       animatedValue.flattenOffset();
+      this.setState({ status: CARD_STATUS.CLOSED });
       this.closeCard();
     }
 
