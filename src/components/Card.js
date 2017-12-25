@@ -11,6 +11,7 @@ import {
   Easing,
   PanResponder,
   ScrollView,
+  Platform
 } from 'react-native';
 import { BasicInfo, Stars, Users, Reviews, Review, ReviewsHeader } from './CardComponent'
 
@@ -20,6 +21,8 @@ import AnimatedBackground from './AnimatedBackground';
 
 import { icons } from '../constants';
 const { width, height } = Dimensions.get('window');
+
+const isIOS = Platform.OS === 'ios';
 
 export const horizontalMargin = 10;
 export const itemWidth = width - 100;
@@ -69,19 +72,26 @@ export default class Card extends Component {
   componentWillMount() {
     const { animatedValue } = this.props;
 
-    this._panResponder = PanResponder.create({
-      onMoveShouldSetResponderCapture: () => true,
-      onMoveShouldSetPanResponderCapture: () => {
-        return this.state.status === CARD_STATUS.OPEN;
-      },
-      onPanResponderGrant: (e, gestureState) => {
-        this.props.disableScroll();
-      },
-      onPanResponderMove: (evt, gestureState) => {
-      },
-      onPanResponderRelease: this.handleRelease,
-      onPanResponderTerminate: this.handleRelease
-    });
+    if (isIOS) {
+      this._panResponder = PanResponder.create({
+        onMoveShouldSetResponderCapture: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderRelease: this.handleRelease,
+        onPanResponderTerminate: this.handleRelease
+      });
+    } else {
+      this._panResponder = PanResponder.create({
+        onMoveShouldSetResponderCapture: () => true,
+        onMoveShouldSetPanResponderCapture: () => {
+          return this.state.status === CARD_STATUS.OPEN;
+        },
+        onPanResponderGrant: (e, gestureState) => {
+          this.props.disableScroll();
+        },
+        onPanResponderRelease: this.handleRelease,
+        onPanResponderTerminate: this.handleRelease
+      });
+    }
   }
 
   handleRelease = (evt, { dx, dy }) => {
@@ -93,8 +103,10 @@ export default class Card extends Component {
       this.closeCard();
     }
 
-    if (dx >= -20 && dx <= 20 && dy >= -20 && dy <= 20) {
-      this.handlePress(index);
+    if (!isIOS) {
+      if (dx >= -20 && dx <= 20 && dy >= -20 && dy <= 20) {
+        this.handlePress(index);
+      }
     }
 
     enableScroll();
@@ -119,8 +131,9 @@ export default class Card extends Component {
 
 
   openCard(index) {
-    const { animatedValue } = this.props;
+    const { animatedValue, onOpenCard = () => {} } = this.props;
 
+    onOpenCard();
     Animated.spring(animatedValue, {
       toValue: -100, friction: 10, velocity: 3
     }).start(() => {
@@ -129,8 +142,9 @@ export default class Card extends Component {
   }
 
   closeCard() {
-    const { animatedValue } = this.props;
+    const { animatedValue, onCloseCard = () => {} } = this.props;
 
+    onCloseCard();
     Animated.spring(animatedValue, {
       toValue: 0, friction: 10, velocity: 3
     }).start(() => {

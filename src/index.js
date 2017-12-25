@@ -27,6 +27,7 @@ export default class ExpandingCollection extends Component {
     return (
       <Carousel
         sliderWidth={sliderWidth}
+        cardWidth={itemWidth}
         itemWidth={itemWidth + (horizontalMargin * 2)}
         enableSnap
         enableMomentum

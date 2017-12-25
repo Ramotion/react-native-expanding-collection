@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ViewPagerAndroid, Dimensions, View, ScrollView, Animated, Platform, Easing, I18nManager, ViewPropTypes } from 'react-native';
+import { ViewPagerAndroid, Dimensions, View, ScrollView, Animated, Platform, Easing, I18nManager, ViewPropTypes, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import shallowCompare from 'react-addons-shallow-compare';
 import _debounce from 'lodash.debounce';
@@ -82,6 +82,7 @@ export default class Carousel extends Component {
     };
 
     this.cards = [];
+    this._openCards = [];
     this._positions = [];
     this._currentContentOffset = 0;
     this._hasFiredEdgeItemCallback = false;
@@ -107,10 +108,6 @@ export default class Carousel extends Component {
       ).bind(this);
 
     this._ignoreNextMomentum = false;
-
-    if (props.onScrollViewScroll) {
-      console.warn('react-native-snap-carousel: Prop `onScrollViewScroll` is deprecated. Please use `onScroll` instead');
-    }
   }
 
   componentWillMount() {
@@ -119,6 +116,7 @@ export default class Carousel extends Component {
     this.props.data.forEach(() => {
       animatedValues.push(new Animated.Value(0));
       opacityValues.push(new Animated.Value(0));
+      this._openCards.push(false);
     });
 
     this.setState({ opacityValues, animatedValues });
@@ -466,7 +464,21 @@ export default class Carousel extends Component {
       }
     }
 
-    this.cards[closeIndex].closeCard();
+    InteractionManager.runAfterInteractions(() => {
+      this._closeNotVisibleCards(index);
+    });
+  }
+
+  _closeNotVisibleCards = (index) => {
+    for (let i = 0; i < this._openCards.length; i++) {
+      if (index - 1 === i || index === i || index + 1 === i) {
+        continue;
+      }
+
+      if (this._openCards[i] && this.cards[i]) {
+        this.cards[i].closeCard();
+      }
+    }
   }
 
   snapToItem(index, animated = true, fireCallback = true, initial = false) {
@@ -526,8 +538,6 @@ export default class Carousel extends Component {
         this._ignoreNextMomentum = true;
       }
     }
-
-    // this.cards[closeIndex].closeCard();
   }
 
   snapToNext(animated = true) {
@@ -600,8 +610,10 @@ export default class Carousel extends Component {
             data={child}
             onOpenToFull={() => { this.setState({ dragEnabled: false }); }}
             onFullToOpen={() => { this.setState({ dragEnabled: true }); }}
-            enableScroll={() =>  this.enableScroll()}
-            disableScroll={() =>  this.disableScroll()}
+            enableScroll={() => this.enableScroll()}
+            disableScroll={() => this.disableScroll()}
+            onOpenCard={() => this._openCard(index)}
+            onCloseCard={() => this._closeCard(index)}
           />
         </Animated.View>
       );
@@ -616,6 +628,14 @@ export default class Carousel extends Component {
     this._scrollview.setNativeProps({ scrollEnabled: true });
   }
 
+  _openCard = index => {
+    this._openCards[index] = true;
+  }
+
+  _closeCard = index => {
+    this._openCards[index] = false;
+  }
+
   render() {
     const {
       sliderHeight,
@@ -628,11 +648,12 @@ export default class Carousel extends Component {
       carouselVerticalPadding,
 
       sliderWidth,
+      cardWidth,
       animatedValue,
       data
     } = this.props;
 
-    const { 
+    const {
       interpolators,
       activeItem,
       animatedValues,
@@ -660,9 +681,9 @@ export default class Carousel extends Component {
     ];
 
     const absoluteWidth =
-      (data.length * itemWidth) +
-      (data.length * horizontalMargin) -
-      horizontalMargin;
+      data.length * cardWidth +
+      horizontalMargin / 2 +
+      (data.length - 1) * horizontalMargin;
 
     const contentContainerStyle = [
       contentContainerCustomStyle || {},
@@ -683,12 +704,17 @@ export default class Carousel extends Component {
           showsVerticalScrollIndicator={false}
           overScrollMode="never"
           {...this.props}
-          ref={(ref) => { if (ref) { this._scrollview = ref._component; } }}
+          ref={(ref) => {
+            if (ref) {
+              this._scrollview = ref._component;
+            }
+          }}
           style={style}
           contentContainerStyle={contentContainerStyle}
           horizontal
           alwaysBounceHorizontal
           removeClippedSubviews={false}
+          bounces={false}
           scrollEnabled={dragEnabled}
           onScroll={this._onScroll}
           onScrollBeginDrag={this._onScrollBeginDrag}
