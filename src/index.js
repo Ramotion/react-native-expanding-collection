@@ -6,7 +6,7 @@ import Carousel from './components/Carousel';
 import {
   itemWidth,
   sliderWidth,
-  horizontalMargin,
+  horizontalMargin
 } from './components/Card';
 
 export default class ExpandingCollection extends Component {

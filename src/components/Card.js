@@ -81,13 +81,12 @@ export default class Card extends Component {
       });
     } else {
       this._panResponder = PanResponder.create({
+        onPanResponderTerminationRequest: () => true,
+        onStartShouldSetPanResponder: (evt, gestureState) => true,
+        onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
         onMoveShouldSetResponderCapture: () => true,
-        onMoveShouldSetPanResponderCapture: () => {
-          return this.state.status === CARD_STATUS.OPEN;
-        },
-        onPanResponderGrant: (e, gestureState) => {
-          this.props.disableScroll();
-        },
+        onMoveShouldSetPanResponderCapture: () => true,
+        onShouldBlockNativeResponder: (evt, gestureState) => false,
         onPanResponderRelease: this.handleRelease,
         onPanResponderTerminate: this.handleRelease
       });
@@ -96,20 +95,21 @@ export default class Card extends Component {
 
   handleRelease = (evt, { dx, dy }) => {
     const { animatedValue, index, enableScroll } = this.props;
+    const isCardFull = this.state.status === CARD_STATUS.FULL;
 
-    if (dy >= 40) {
+    if (!isCardFull && dy >= 40) {
       animatedValue.flattenOffset();
       this.setState({ status: CARD_STATUS.CLOSED });
       this.closeCard();
+      enableScroll();
+      return;
     }
 
-    if (!isIOS) {
-      if (dx >= -20 && dx <= 20 && dy >= -20 && dy <= 20) {
-        this.handlePress(index);
-      }
+    if (!isIOS && dx >= -2 && dx <= 2 && dy >= -2 && dy <= 2) {
+      this.handlePress(index);
+      enableScroll();
     }
 
-    enableScroll();
   }
 
   handlePress(index) {
@@ -131,7 +131,7 @@ export default class Card extends Component {
 
 
   openCard(index) {
-    const { animatedValue, onOpenCard = () => {} } = this.props;
+    const { animatedValue, onOpenCard = () => { } } = this.props;
 
     onOpenCard();
     Animated.spring(animatedValue, {
@@ -142,7 +142,7 @@ export default class Card extends Component {
   }
 
   closeCard() {
-    const { animatedValue, onCloseCard = () => {} } = this.props;
+    const { animatedValue, onCloseCard = () => { } } = this.props;
 
     onCloseCard();
     Animated.spring(animatedValue, {
@@ -179,7 +179,7 @@ export default class Card extends Component {
       }),
       ...animations
     ]).start(() => {
-      this.setState({ status: CARD_STATUS.FULL});
+      this.setState({ status: CARD_STATUS.FULL });
     });
   }
 
@@ -214,12 +214,120 @@ export default class Card extends Component {
     });
   }
 
+  renderFrontView = (data, y) => {
+    const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
+
+    return (
+      <AnimatedBackground
+        source={{ uri: data.img }}
+        style={{
+          height: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [values.full.cardHeight, itemHeight, itemHeight],
+          }),
+          padding: 4,
+          borderRadius: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [0, borderRadius, borderRadius]
+          })
+        }}
+        imageStyle={{
+          borderRadius: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [0, borderRadius, borderRadius]
+          })
+        }}
+        onLoadEnd={() => this.setState({ isReady: true })}
+      >
+        <View style={styles.cardFront}>
+          <Animated.Text
+            style={[styles.fontCardTitle, {
+              opacity: y.interpolate({
+                inputRange: treshholds,
+                outputRange: [0, 1, 1]
+              })
+            }]}
+          >
+            {data.name}
+          </Animated.Text>
+          <View style={styles.cardCoordinatesWrapper}>
+            <Text numberOfLines={1} style={styles.fontCardCoordinates}>
+              {`${firstName.toUpperCase()} LAT ${Math.floor(firstCoord)}`}
+            </Text>
+            <Image
+              source={{ uri: icons.locationIconFull }}
+              style={styles.locationIconFull}
+            />
+            <Text numberOfLines={1} style={[styles.fontCardCoordinates, { textAlign: 'right' }]}>
+              {`${secondName.toUpperCase()} LNG ${Math.floor(secondCoord)}`}
+            </Text>
+          </View>
+        </View>
+      </AnimatedBackground>
+    );
+  }
+
+  renderFront = (data, y, index) => {
+    if (isIOS) {
+      return (
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          activeOpacity={1}
+          onPress={() => this.handlePress(index)}
+        >
+          {this.renderFrontView(data, y)}
+        </TouchableOpacity>
+      );
+    }
+
+    return this.renderFrontView(data, y);
+  }
+
+  renderBack = (data, y, index) => {
+    const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
+    const { blob, rating, reviews, id } = data;
+
+    return (
+      <TouchableOpacity
+        style={{ flex: 1 }}
+        activeOpacity={1}
+        onPress={() => this.handlePress(index)}
+      >
+        <BasicInfo
+          y={y}
+          blob={blob}
+          latitude={firstCoord}
+          longitude={secondCoord}
+        />
+        <ReviewsHeader
+          y={y}
+          blob={blob}
+          id={id}
+          rating={rating}
+          latitude={firstCoord}
+          longitude={secondCoord}
+        />
+        <Stars
+          y={y}
+          rating={rating}
+          id={id}
+        />
+        <Users
+          y={y}
+          reviews={reviews}
+        />
+        <Reviews
+          y={y}
+          reviews={reviews}
+        />
+      </TouchableOpacity>
+    )
+  }
+
   render() {
     const { status, isReady, scrolled } = this.state;
     const { data, index, paginationIndex } = this.props;
     const y = this.props.animatedValue;
-    const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
-    const { blob, rating, reviews, id } = data;
 
     return (
       <Animated.ScrollView
@@ -238,93 +346,10 @@ export default class Card extends Component {
           {...this._panResponder.panHandlers}
           style={this.frontCardStyle(y, index === paginationIndex)}
         >
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            activeOpacity={1}
-            onPress={() => this.handlePress(index)}
-          >
-            <AnimatedBackground
-              source={{ uri: data.img }}
-              style={{
-                height: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [values.full.cardHeight, itemHeight, itemHeight],
-                }),
-                padding: 4,
-                borderRadius: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [0, borderRadius, borderRadius]
-                })
-              }}
-              imageStyle={{
-                borderRadius: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [0, borderRadius, borderRadius]
-                })
-              }}
-              onLoadEnd={() => this.setState({ isReady: true })}
-            >
-              <View style={styles.cardFront}>
-                <Animated.Text
-                  style={[styles.fontCardTitle, {
-                    opacity: y.interpolate({
-                      inputRange: treshholds,
-                      outputRange: [0, 1, 1]
-                    })
-                  }]}
-                >
-                  {data.name}
-                </Animated.Text>
-                <View style={styles.cardCoordinatesWrapper}>
-                  <Text numberOfLines={1} style={styles.fontCardCoordinates}>
-                    {`${firstName.toUpperCase()} LAT ${Math.floor(firstCoord)}`}
-                  </Text>
-                  <Image
-                    source={{ uri: icons.locationIconFull }}
-                    style={styles.locationIconFull}
-                  />
-                  <Text numberOfLines={1} style={[styles.fontCardCoordinates, { textAlign: 'right' }]}>
-                    {`${secondName.toUpperCase()} LNG ${Math.floor(secondCoord)}`}
-                  </Text>
-                </View>
-              </View>
-            </AnimatedBackground>
-          </TouchableOpacity>
+          {this.renderFront(data, y, index)}
         </Animated.View>
         <Animated.View style={this.backCardStyle(y)}>
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            activeOpacity={1}
-            onPress={() => this.handlePress(index)}
-          >
-            <BasicInfo
-              y={y}
-              blob={blob}
-              latitude={firstCoord}
-              longitude={secondCoord}
-            />
-            <ReviewsHeader
-              y={y}
-              blob={blob}
-              id={id}
-              rating={rating}
-              latitude={firstCoord}
-              longitude={secondCoord}
-            />
-            <Stars
-              y={y}
-              rating={rating}
-              id={id}
-            />
-            <Users
-              y={y}
-              reviews={reviews}
-            />
-            <Reviews
-              y={y}
-              reviews={reviews}
-            />
-          </TouchableOpacity>
+          {this.renderBack(data, y, index)}
         </Animated.View>
       </Animated.ScrollView>
     );

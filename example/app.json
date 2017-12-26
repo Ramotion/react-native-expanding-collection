@@ -13,6 +13,9 @@
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.opengeekslab.reactnativeexpandingcollection"
     }
   }
 }
