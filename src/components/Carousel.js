@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ViewPagerAndroid, Dimensions, View, ScrollView, Animated, Platform, Easing, I18nManager, ViewPropTypes, InteractionManager } from 'react-native';
+import { BackHandler, ViewPagerAndroid, Dimensions, View, ScrollView, Animated, Platform, Easing, I18nManager, ViewPropTypes, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import shallowCompare from 'react-addons-shallow-compare';
 import _debounce from 'lodash.debounce';
@@ -127,6 +127,14 @@ export default class Carousel extends Component {
     const _firstItem = this._getFirstItem(firstItem);
 
     this._initInterpolators(this.props);
+
+    BackHandler.addEventListener("hardwareBackPress", this._backAndroidListener);
+  }
+
+  _backAndroidListener = () => {
+    this.cards[this.state.activeItem].hideCardFullWithoutAnimation();
+
+    return false;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -173,6 +181,7 @@ export default class Carousel extends Component {
   componentWillUnmount() {
     clearTimeout(this._snapNoMomentumTimeout);
     clearTimeout(this._scrollToTimeout);
+    BackHandler.removeEventListener("hardwareBackPress", this._backAndroidListener);
   }
 
   get _snapEnabled() {
@@ -305,11 +314,12 @@ export default class Carousel extends Component {
     }
 
     if (activeItem !== newActiveItem) {
-      this.setState({ activeItem: newActiveItem }, () => {
-        if (!enableMomentum && this._canFireCallback && this._isShortSnapping) {
-          this._isShortSnapping = false;
-          this._onSnap(newActiveItem);
-        }
+      if (!enableMomentum && this._canFireCallback && this._isShortSnapping) {
+        this._isShortSnapping = false;
+        this._onSnap(newActiveItem);
+      }
+      InteractionManager.runAfterInteractions(() => {
+        this.setState({ activeItem: newActiveItem });
       });
 
       if (this.state.interpolators[activeItem]) {
@@ -327,28 +337,20 @@ export default class Carousel extends Component {
 
     if (!enableMomentum && this._canFireCallback && !this._isShortSnapping &&
       (this._scrollStartActive !== newActiveItem || !this._hasFiredEdgeItemCallback) &&
-      this._itemToSnapTo === newActiveItem) {
-      this.setState({ activeItem: newActiveItem }, () => {
-        this._onSnap(newActiveItem);
+      this._itemToSnapTo === newActiveItem
+    ) {
+      this._onSnap(newActiveItem);
+      InteractionManager.runAfterInteractions(() => {
+        this.setState({ activeItem: newActiveItem });
       });
     }
 
-    if (onScroll) {
-      onScroll(event);
-    }
-
-    if (onScrollViewScroll) {
-      onScrollViewScroll(event);
-    }
   }
 
   _onTouchStart() {
   }
 
   _onScrollBeginDrag(event) {
-    this.setState({
-      changeIndexEnabled: false
-    });
     this._scrollStartOffset = this._getScrollOffset(event);
     this._scrollStartActive = this._getActiveItem(this._scrollStartOffset);
     this._ignoreNextMomentum = false;
@@ -372,9 +374,6 @@ export default class Carousel extends Component {
   }
 
   _onScrollEnd(event) {
-    this.setState({
-      changeIndexEnabled: true
-    })
     if (this._ignoreNextMomentum) {
       this._ignoreNextMomentum = false;
       return;
@@ -441,26 +440,17 @@ export default class Carousel extends Component {
 
   _onSnap(index) {
     const { enableMomentum } = this.props;
-    let closeIndex = this.state.previousActiveItem;
-
-    if (this.state.changeIndexEnabled) {
-      // this.onSnapToItem(index);
-    }
-    // this.onSnapToItem(index);
 
     const itemsLength = this._positions.length;
 
     if (this._scrollview) {
       if (enableMomentum) {
-        // this.onSnapToItem(index);
       } else if (this._canFireCallback) {
         this._canFireCallback = false;
 
         if (index === 0 || index === itemsLength - 1) {
           this._hasFiredEdgeItemCallback = true;
         }
-
-        // this.onSnapToItem(index);
       }
     }
 
@@ -510,7 +500,9 @@ export default class Carousel extends Component {
       const snapTo = itemsLength && this._positions[index].start;
 
       if (enableMomentum) {
-        this.setState({ previousActiveItem: index });
+        InteractionManager.runAfterInteractions(() => {
+          this.setState({ previousActiveItem: index });
+        });
         if (fireCallback) {
           this._onSnap(index);
         }

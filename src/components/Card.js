@@ -183,6 +183,19 @@ export default class Card extends Component {
     });
   }
 
+  hideCardFullWithoutAnimation() {
+    const { animatedValue } = this.props;
+    const { onFullToOpen, paginationLength, opacityValues } = this.props;
+    const { status } = this.state;
+    onFullToOpen();
+
+    if (status === CARD_STATUS.FULL) {
+      this.setState({ scrolled: false });
+      animatedValue.setValue(-100);
+      this.setState({ status: CARD_STATUS.OPEN });
+    }
+  }
+
   hideCardFull(index) {
     const { animatedValue } = this.props;
     const { onFullToOpen, paginationLength, opacityValues } = this.props;
