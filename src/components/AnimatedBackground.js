@@ -1,33 +1,30 @@
-// @flow
 import React, { Component } from 'react';
 import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import ensureComponentIsNative from 'ensureComponentIsNative';
 
 import type { NativeMethodsMixinType } from 'ReactNativeTypes';
 
 class AnimatedBackground extends Component {
-  setNativeProps(props: Object) {
+  setNativeProps(props) {
     const viewRef = this._viewRef;
     if (viewRef) {
-      ensureComponentIsNative(viewRef);
       viewRef.setNativeProps(props);
     }
   }
 
-  _viewRef: ?NativeMethodsMixinType = null;
+  _viewRef = null;
 
   _captureRef = ref => {
     this._viewRef = ref;
   };
 
   render() {
-    const { children, style, imageStyle, imageRef, ...props } = this.props;
+    const { children, panHandlers, style, imageStyle, imageRef, ...props } = this.props;
 
     return (
-      <Animated.View style={style} ref={this._captureRef}>
+      <Animated.View style={style} ref={this._captureRef} {...panHandlers}>
         <Animated.Image
           {...props}
           style={[

@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { MapView } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 
-import { icons } from '../../constants';
+import { icons } from '../constants';
 import { treshholds } from './Card';
 
 const { width } = Dimensions.get('window');
@@ -27,7 +27,7 @@ const BasicInfo = ({
     overflow: 'hidden'
   }]}>
     <Text numberOfLines={1} style={styles.fontCityBlob}>
-      { blob }
+      {blob}
     </Text>
   </Animated.View>
 );
@@ -121,7 +121,7 @@ Reviews.propTypes = {
   reviews: PropTypes.arrayOf(Review.propTypes.review).isRequired
 };
 
-const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude, isShowMap }) => {
+const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude }) => {
   const getHeaderStyle = y => ({
     height: y.interpolate({
       inputRange: treshholds,
@@ -141,20 +141,18 @@ const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude, isShowMap }) 
 
   return (
     <Animated.View style={getHeaderStyle(y)}>
-      {
-        isShowMap &&
-        <MapView
-          style={{
-            height: 100
-          }}
-          initialRegion={{
-            latitude,
-            longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421
-          }}
-        />
-      }
+      <MapView
+        style={{ flex: 1 }}
+        initialRegion={{
+          latitude,
+          longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421
+        }}
+        scrollEnabled={false}
+        rotateEnabled={false}
+        zoomEnabled={false}
+      />
       <Text
         style={{
           position: 'absolute',
@@ -204,8 +202,7 @@ ReviewsHeader.propTypes = {
   blob: PropTypes.string.isRequired,
   y: PropTypes.object.isRequired,
   latitude: PropTypes.number.isRequired,
-  longitude: PropTypes.number.isRequired,
-  isShowMap: PropTypes.bool.isRequired
+  longitude: PropTypes.number.isRequired
 };
 
 

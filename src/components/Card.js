@@ -11,6 +11,7 @@ import {
   Easing,
   PanResponder,
   ScrollView,
+  Platform
 } from 'react-native';
 import { BasicInfo, Stars, Users, Reviews, Review, ReviewsHeader } from './CardComponent'
 
@@ -18,8 +19,10 @@ import Pagination from './Pagination';
 import Header from './Header';
 import AnimatedBackground from './AnimatedBackground';
 
-import { icons } from '../../constants';
+import { icons } from '../constants';
 const { width, height } = Dimensions.get('window');
+
+const isIOS = Platform.OS === 'ios';
 
 export const horizontalMargin = 10;
 export const itemWidth = width - 100;
@@ -61,41 +64,52 @@ export default class Card extends Component {
 
     this.state = {
       status: CARD_STATUS.CLOSED,
-      isShowMap: false
+      isReady: false,
+      scrolled: false,
     };
   }
 
   componentWillMount() {
     const { animatedValue } = this.props;
 
-    this._panResponder = PanResponder.create({
-      onMoveShouldSetResponderCapture: () => true,
-      onMoveShouldSetPanResponderCapture: () => {
-        return this.state.status === CARD_STATUS.OPEN;
-      },
-      onPanResponderGrant: (e, gestureState) => {
-        this.props.disableScroll();
-      },
-      onPanResponderMove: (evt, gestureState) => {
-      },
-      onPanResponderRelease: this.handleRelease,
-      onPanResponderTerminate: this.handleRelease
-    });
+    if (isIOS) {
+      this._panResponder = PanResponder.create({
+        onMoveShouldSetResponderCapture: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderRelease: this.handleRelease,
+        onPanResponderTerminate: this.handleRelease
+      });
+    } else {
+      this._panResponder = PanResponder.create({
+        onPanResponderTerminationRequest: () => true,
+        onStartShouldSetPanResponder: (evt, gestureState) => true,
+        onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+        onMoveShouldSetResponderCapture: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onShouldBlockNativeResponder: (evt, gestureState) => false,
+        onPanResponderRelease: this.handleRelease,
+        onPanResponderTerminate: this.handleRelease
+      });
+    }
   }
 
   handleRelease = (evt, { dx, dy }) => {
     const { animatedValue, index, enableScroll } = this.props;
+    const isCardFull = this.state.status === CARD_STATUS.FULL;
 
-    if (dy >= 40) {
+    if (!isCardFull && dy >= 40) {
       animatedValue.flattenOffset();
+      this.setState({ status: CARD_STATUS.CLOSED });
       this.closeCard();
+      enableScroll();
+      return;
     }
 
-    if (dx >= -20 && dx <= 20 && dy >= -20 && dy <= 20) {
+    if (!isIOS && dx >= -2 && dx <= 2 && dy >= -2 && dy <= 2) {
       this.handlePress(index);
+      enableScroll();
     }
 
-    enableScroll();
   }
 
   handlePress(index) {
@@ -113,16 +127,13 @@ export default class Card extends Component {
     if (status === CARD_STATUS.OPEN) {
       this.openCardFull(index);
     }
-
-    if (status === CARD_STATUS.FULL) {
-      this.hideCardFull(index);
-    }
   }
 
 
   openCard(index) {
-    const { animatedValue } = this.props;
+    const { animatedValue, onOpenCard = () => { } } = this.props;
 
+    onOpenCard();
     Animated.spring(animatedValue, {
       toValue: -100, friction: 10, velocity: 3
     }).start(() => {
@@ -131,8 +142,9 @@ export default class Card extends Component {
   }
 
   closeCard() {
-    const { animatedValue } = this.props;
+    const { animatedValue, onCloseCard = () => { } } = this.props;
 
+    onCloseCard();
     Animated.spring(animatedValue, {
       toValue: 0, friction: 10, velocity: 3
     }).start(() => {
@@ -159,21 +171,35 @@ export default class Card extends Component {
       }));
     }
 
+    this.setState({ scrolled: true });
+
     Animated.parallel([
       Animated.spring(animatedValue, {
         toValue: -200, friction: 10, velocity: 3
       }),
       ...animations
     ]).start(() => {
-      this.setState({ status: CARD_STATUS.FULL, isShowMap: true });
+      this.setState({ status: CARD_STATUS.FULL });
     });
+  }
+
+  hideCardFullWithoutAnimation() {
+    const { animatedValue } = this.props;
+    const { onFullToOpen, paginationLength, opacityValues } = this.props;
+    const { status } = this.state;
+    onFullToOpen();
+
+    if (status === CARD_STATUS.FULL) {
+      this.setState({ scrolled: false });
+      animatedValue.setValue(-100);
+      this.setState({ status: CARD_STATUS.OPEN });
+    }
   }
 
   hideCardFull(index) {
     const { animatedValue } = this.props;
     const { onFullToOpen, paginationLength, opacityValues } = this.props;
 
-    this.setState({ isShowMap: false });
     onFullToOpen();
 
     const animations = [];
@@ -189,6 +215,8 @@ export default class Card extends Component {
       }));
     }
 
+    this.setState({ scrolled: false });
+
     Animated.parallel([
       Animated.spring(animatedValue, {
         toValue: -100, friction: 10, velocity: 3
@@ -199,110 +227,142 @@ export default class Card extends Component {
     });
   }
 
-  render() {
-    const { status, isShowMap } = this.state;
-    const { data, index, paginationIndex } = this.props;
-    const y = this.props.animatedValue;
+  renderFrontView = (data, y) => {
+    const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
+
+    return (
+      <AnimatedBackground
+        source={{ uri: data.img }}
+        style={{
+          height: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [values.full.cardHeight, itemHeight, itemHeight],
+          }),
+          padding: 4,
+          borderRadius: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [0, borderRadius, borderRadius]
+          })
+        }}
+        imageStyle={{
+          borderRadius: y.interpolate({
+            inputRange: treshholds,
+            outputRange: [0, borderRadius, borderRadius]
+          })
+        }}
+        onLoadEnd={() => this.setState({ isReady: true })}
+      >
+        <View style={styles.cardFront}>
+          <Animated.Text
+            style={[styles.fontCardTitle, {
+              opacity: y.interpolate({
+                inputRange: treshholds,
+                outputRange: [0, 1, 1]
+              })
+            }]}
+          >
+            {data.name}
+          </Animated.Text>
+          <View style={styles.cardCoordinatesWrapper}>
+            <Text numberOfLines={1} style={styles.fontCardCoordinates}>
+              {`${firstName.toUpperCase()} LAT ${Math.floor(firstCoord)}`}
+            </Text>
+            <Image
+              source={{ uri: icons.locationIconFull }}
+              style={styles.locationIconFull}
+            />
+            <Text numberOfLines={1} style={[styles.fontCardCoordinates, { textAlign: 'right' }]}>
+              {`${secondName.toUpperCase()} LNG ${Math.floor(secondCoord)}`}
+            </Text>
+          </View>
+        </View>
+      </AnimatedBackground>
+    );
+  }
+
+  renderFront = (data, y, index) => {
+    if (isIOS) {
+      return (
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          activeOpacity={1}
+          onPress={() => this.handlePress(index)}
+        >
+          {this.renderFrontView(data, y)}
+        </TouchableOpacity>
+      );
+    }
+
+    return this.renderFrontView(data, y);
+  }
+
+  renderBack = (data, y, index) => {
     const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
     const { blob, rating, reviews, id } = data;
+
+    return (
+      <TouchableOpacity
+        style={{ flex: 1 }}
+        activeOpacity={1}
+        onPress={() => this.handlePress(index)}
+      >
+        <BasicInfo
+          y={y}
+          blob={blob}
+          latitude={firstCoord}
+          longitude={secondCoord}
+        />
+        <ReviewsHeader
+          y={y}
+          blob={blob}
+          id={id}
+          rating={rating}
+          latitude={firstCoord}
+          longitude={secondCoord}
+        />
+        <Stars
+          y={y}
+          rating={rating}
+          id={id}
+        />
+        <Users
+          y={y}
+          reviews={reviews}
+        />
+        <Reviews
+          y={y}
+          reviews={reviews}
+        />
+      </TouchableOpacity>
+    )
+  }
+
+  render() {
+    const { status, isReady, scrolled } = this.state;
+    const { data, index, paginationIndex } = this.props;
+    const y = this.props.animatedValue;
 
     return (
       <Animated.ScrollView
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         style={{
+          opacity: 1 * (+isReady),
           width: y.interpolate({
             inputRange: treshholds,
             outputRange: [width, itemWidth + (horizontalMargin * 2), itemWidth + (horizontalMargin * 2)]
           })
         }}
-        scrollEnabled={status === CARD_STATUS.FULL}
+        scrollEnabled={scrolled}
       >
         <Animated.View
           {...this._panResponder.panHandlers}
           style={this.frontCardStyle(y, index === paginationIndex)}
         >
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            activeOpacity={1}
-            onPress={() => this.handlePress(index)}
-          >
-            <AnimatedBackground
-              source={{ uri: data.img }}
-              style={{
-                height: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [values.full.cardHeight, itemHeight, itemHeight],
-                }),
-                padding: 4,
-                borderRadius: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [0, borderRadius, borderRadius]
-                })
-              }}
-              imageStyle={{
-                borderRadius: y.interpolate({
-                  inputRange: treshholds,
-                  outputRange: [0, borderRadius, borderRadius]
-                })
-              }}
-            >
-              <View style={styles.cardFront}>
-                <Animated.Text
-                  style={[styles.fontCardTitle, {
-                    opacity: y.interpolate({
-                      inputRange: treshholds,
-                      outputRange: [0, 1, 1]
-                    })
-                  }]}
-                >
-                  {data.name}
-                </Animated.Text>
-                <View style={styles.cardCoordinatesWrapper}>
-                  <Text numberOfLines={1} style={styles.fontCardCoordinates}>
-                    {`${firstName.toUpperCase()} LAT ${Math.floor(firstCoord)}`}
-                  </Text>
-                  <Image
-                    source={{ uri: icons.locationIconFull }}
-                    style={styles.locationIconFull}
-                  />
-                  <Text numberOfLines={1} style={[styles.fontCardCoordinates, { textAlign: 'right' }]}>
-                    {`${secondName.toUpperCase()} LNG ${Math.floor(secondCoord)}`}
-                  </Text>
-                </View>
-              </View>
-            </AnimatedBackground>
-          </TouchableOpacity>
+          {this.renderFront(data, y, index)}
         </Animated.View>
         <Animated.View style={this.backCardStyle(y)}>
-          <BasicInfo
-            y={y}
-            blob={blob}
-            latitude={firstCoord}
-            longitude={secondCoord}
-          />
-          <ReviewsHeader
-            y={y}
-            blob={blob}
-            id={id}
-            rating={rating}
-            latitude={firstCoord}
-            longitude={secondCoord}
-            isShowMap={isShowMap}
-          />
-          <Stars
-            y={y}
-            rating={rating}
-            id={id}
-          />
-          <Users
-            y={y}
-            reviews={reviews}
-          />
-          <Reviews
-            y={y}
-            reviews={reviews}
-          />
+          {this.renderBack(data, y, index)}
         </Animated.View>
       </Animated.ScrollView>
     );
@@ -338,12 +398,11 @@ export default class Card extends Component {
     }),
     elevation: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, 10, isActive ? 10 : 0]
+      outputRange: [0, 0, isActive ? 10 : 0]
     })
   })
 
   backCardStyle = y => ({
-    zIndex: 10,
     height: y.interpolate({
       inputRange: [-200, -199, -150, -101, -100, -99, -1, 0, 1],
       outputRange: [undefined, undefined, itemHeight / 2, values.open.infoHeight, values.open.infoHeight, values.open.infoHeight, 0, 0, 0],

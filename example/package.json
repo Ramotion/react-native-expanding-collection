@@ -1,0 +1,32 @@
+{
+  "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
+  "scripts": {
+    "start": "react-native-scripts start",
+    "eject": "react-native-scripts eject",
+    "android": "react-native-scripts android",
+    "ios": "react-native-scripts ios",
+    "test": "node node_modules/jest/bin/jest.js --watch"
+  },
+  "private": true,
+  "dependencies": {
+    "@expo/vector-icons": "^6.2.1",
+    "expo": "22.0.0",
+    "lodash.debounce": "^4.0.8",
+    "prop-types": "15.6.0",
+    "react": "16.0.0-beta.5",
+    "react-addons-shallow-compare": "15.6.2",
+    "@ramotion/react-native-expanding-collection": "https://github.com/Ramotion/react-native-expanding-collection.git",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-22.0.0.tar.gz"
+  },
+  "devDependencies": {
+    "babel-preset-expo": "^4.0.0",
+    "react-native-scripts": "1.5.0",
+    "eslint": "4.12.1",
+    "eslint-config-airbnb": "16.1.0",
+    "eslint-plugin-import": "2.8.0",
+    "eslint-plugin-jsx-a11y": "6.0.2",
+    "eslint-plugin-react": "7.5.1",
+    "eslint-plugin-react-native": "3.2.0",
+    "eslint-watch": "3.1.3"
+  }
+}
