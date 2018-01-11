@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, Image } from 'react-native';
 import { AppLoading, Asset } from 'expo';
 
 import ExpandingCollection from '@ramotion/react-native-expanding-collection';
-// import ExpandingCollection from './src';
 
 import { cities } from './constants';
 

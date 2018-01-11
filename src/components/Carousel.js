@@ -314,13 +314,13 @@ export default class Carousel extends Component {
     }
 
     if (activeItem !== newActiveItem) {
-      if (!enableMomentum && this._canFireCallback && this._isShortSnapping) {
-        this._isShortSnapping = false;
-        this._onSnap(newActiveItem);
-      }
-      InteractionManager.runAfterInteractions(() => {
-        this.setState({ activeItem: newActiveItem });
+      this.setState({ activeItem: newActiveItem }, () => {
+        if (!enableMomentum && this._canFireCallback && this._isShortSnapping) {
+          this._isShortSnapping = false;
+          this._onSnap(newActiveItem);
+        }
       });
+
 
       if (this.state.interpolators[activeItem]) {
         animations.push(this._getSlideAnimation(activeItem, 0));
@@ -339,9 +339,8 @@ export default class Carousel extends Component {
       (this._scrollStartActive !== newActiveItem || !this._hasFiredEdgeItemCallback) &&
       this._itemToSnapTo === newActiveItem
     ) {
-      this._onSnap(newActiveItem);
-      InteractionManager.runAfterInteractions(() => {
-        this.setState({ activeItem: newActiveItem });
+      this.setState({ activeItem: newActiveItem }, () => {
+        this._onSnap(newActiveItem);
       });
     }
 
@@ -500,12 +499,11 @@ export default class Carousel extends Component {
       const snapTo = itemsLength && this._positions[index].start;
 
       if (enableMomentum) {
-        InteractionManager.runAfterInteractions(() => {
-          this.setState({ previousActiveItem: index });
+        this.setState({ previousActiveItem: index }, () => {
+          if (fireCallback) {
+            this._onSnap(index);
+          }
         });
-        if (fireCallback) {
-          this._onSnap(index);
-        }
       } else {
         this._itemToSnapTo = index;
 
