@@ -29,7 +29,6 @@ export default class ExpandingCollection extends Component {
         sliderWidth={sliderWidth}
         cardWidth={itemWidth}
         itemWidth={itemWidth + (horizontalMargin * 2)}
-        enableSnap
         enableMomentum
         decelerationRate="fast"
         inactiveSlideOpacity={0.4}
