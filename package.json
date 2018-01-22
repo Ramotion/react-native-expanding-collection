@@ -1,6 +1,6 @@
 {
   "name": "@ramotion/react-native-expanding-collection",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "React Native component for creating animated, expanding collection",
   "main": "src/index.js",
   "keywords": [

@@ -71,8 +71,6 @@ export default class Card extends Component {
   constructor(props) {
     super(props);
 
-    console.warn(JSON.stringify(Constants, null, 2));
-
     this.state = {
       status: CARD_STATUS.CLOSED,
       isReady: false,
@@ -116,7 +114,7 @@ export default class Card extends Component {
   handleRelease = (evt, { dx, dy }) => {
     const { animatedValue, index, enableScroll } = this.props;
     const isCardFull = this.state.status === CARD_STATUS.FULL;
-    console.warn('handleRelase', dx, dy);
+
     if (!isCardFull && dy >= 40) {
       animatedValue.flattenOffset();
       this.setState({ status: CARD_STATUS.CLOSED });
@@ -306,7 +304,6 @@ export default class Card extends Component {
         <TouchableOpacity
           style={{ flex: 1 }}
           activeOpacity={1}
-          // onPress={() => { console.warn('renderFront: onPress'); }}
           onPress={() => this.handlePress(index)}
         >
           {this.renderFrontView(data, y)}
@@ -434,7 +431,7 @@ export default class Card extends Component {
     }),
     left: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, isFullScreen ? backCardLeft : 0, backCardLeft],
+      outputRange: [0, isFullScreen ? backCardLeft : 0, isFullScreen ? width / 2 : backCardLeft],
     }),
     top: y.interpolate({
       inputRange: treshholds,
