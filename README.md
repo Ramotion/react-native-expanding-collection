@@ -69,6 +69,15 @@ class Example extends Component {
 | Name | Description | Type | Required | Default Value |
 | :--- | :----- | :--- | :---: | :---: |
 | data | Information about cards | Array | + |  |
+| frontCardColor | Color for front card | String |   | '#fffeff' |
+| backCardColor | Color for back card | String |   | '#fffeff' |
+| paginationColor | Color for pagination card | String |   | '#cbd2db' |
+| cardBorder | Card border prop | Number |   | 8 |
+| cardPadding | Card padding prop | Number |   | 4 |
+| renderFrontCard | Render front card | Component |   |  |
+| renderBackCard | Render back card | Component |   |  |
+| headerCloseIconUrl | Close icon Url for header | String |   | 'https://www.materialui.co/materialIcons/navigation/close_black_2048x2048.png' |
+| headerDefaultIconUrl | Default icon Url for header | String |   | 'https://cdn2.iconfinder.com/data/icons/lightly-icons/30/crosshairs-480.png' |
 
 ## Licence
 

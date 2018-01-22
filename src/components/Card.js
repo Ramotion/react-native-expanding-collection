@@ -67,13 +67,19 @@ export const CARD_STATUS = {
 export const treshholds = [-200, -100, 0];
 
 export default class Card extends Component {
+  static defaultProps = {
+    frontCardColor: '#fffeff',
+    backCardColor: '#fffeff',
+    cardBorder: 8,
+    cardPadding: 4
+  };
 
   constructor(props) {
     super(props);
 
     this.state = {
       status: CARD_STATUS.CLOSED,
-      isReady: false,
+      isReady: !!props.renderFrontCard,
       scrolled: false,
     };
   }
@@ -299,6 +305,24 @@ export default class Card extends Component {
   }
 
   renderFront = (data, y, index) => {
+    const { renderFrontCard } = this.props;
+
+    if (renderFrontCard) {
+      if (isIOS) {
+        return (
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => this.handlePress(index)}
+          >
+            {renderFrontCard(data, y, index)}
+          </TouchableOpacity>
+        );
+      }
+
+      return renderFrontCard(data, y, index);
+    }
+
     if (isIOS) {
       return (
         <TouchableOpacity
@@ -315,6 +339,10 @@ export default class Card extends Component {
   }
 
   renderBack = (data, y, index) => {
+    if (this.props.renderBackCard) {
+      return this.props.renderBackCard(data, y, index);
+    }
+
     const [firstCoord, firstName, secondCoord, secondName] = data.coordinates;
     const { blob, rating, reviews, id } = data;
 
@@ -406,7 +434,7 @@ export default class Card extends Component {
     }),
     borderRadius: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, borderRadius, borderRadius]
+      outputRange: [0, this.props.cardBorder, this.props.cardBorder]
     }),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
@@ -417,7 +445,8 @@ export default class Card extends Component {
     elevation: y.interpolate({
       inputRange: treshholds,
       outputRange: [0, 0, isActive ? 10 : 0]
-    })
+    }),
+    backgroundColor: this.props.frontCardColor
   })
 
   backCardStyle = y => ({
@@ -441,15 +470,15 @@ export default class Card extends Component {
       inputRange: treshholds,
       outputRange: [0, values.open.paddingTop, 0],
     }),
-    backgroundColor: '#fffeff',
+    backgroundColor: this.props.backCardColor,
     overflow: 'hidden',
     borderRadius: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, borderRadius, 0]
+      outputRange: [0, this.props.cardBorder, 0]
     }),
     padding: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, 4, 0]
+      outputRange: [0, this.props.cardPadding, 0]
     })
   })
 }

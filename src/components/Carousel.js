@@ -3,7 +3,7 @@ import { BackHandler, ViewPagerAndroid, Dimensions, View, ScrollView, Animated, 
 import PropTypes from 'prop-types';
 import shallowCompare from 'react-addons-shallow-compare';
 import _debounce from 'lodash.debounce';
-import { LinearGradient, Constants } from 'expo';
+import { Constants } from 'expo';
 
 const IS_RTL = I18nManager.isRTL;
 const { width, height } = Dimensions.get('window');
@@ -13,59 +13,54 @@ import Pagination from './Pagination';
 import Header from './Header';
 
 export default class Carousel extends Component {
-
-  static get propTypes() {
-    return {
-      ...ScrollView.propTypes,
-      itemWidth: PropTypes.number,
-      itemHeight: PropTypes.number,
-      sliderWidth: PropTypes.number,
-      sliderHeight: PropTypes.number,
-      activeSlideOffset: PropTypes.number,
-      animationFunc: PropTypes.string,
-      animationOptions: PropTypes.object,
-      carouselHorizontalPadding: PropTypes.number,
-      carouselVerticalPadding: PropTypes.number,
-      containerCustomStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
-      contentContainerCustomStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
-      enableMomentum: PropTypes.bool,
-      enableSnap: PropTypes.bool,
-      firstItem: PropTypes.number,
-      inactiveSlideOpacity: PropTypes.number,
-      inactiveSlideScale: PropTypes.number,
-      scrollEndDragDebounceValue: PropTypes.number,
-      slideStyle: Animated.View.propTypes.style,
-      shouldOptimizeUpdates: PropTypes.bool,
-      snapOnAndroid: PropTypes.bool,
-      onScrollViewScroll: PropTypes.func,
-      onSnapToItem: PropTypes.func
-    };
+  static propTypes = {
+    ...ScrollView.propTypes,
+    itemWidth: PropTypes.number,
+    itemHeight: PropTypes.number,
+    sliderWidth: PropTypes.number,
+    sliderHeight: PropTypes.number,
+    activeSlideOffset: PropTypes.number,
+    animationFunc: PropTypes.string,
+    animationOptions: PropTypes.object,
+    carouselHorizontalPadding: PropTypes.number,
+    carouselVerticalPadding: PropTypes.number,
+    containerCustomStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
+    contentContainerCustomStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
+    enableMomentum: PropTypes.bool,
+    enableSnap: PropTypes.bool,
+    firstItem: PropTypes.number,
+    inactiveSlideOpacity: PropTypes.number,
+    inactiveSlideScale: PropTypes.number,
+    scrollEndDragDebounceValue: PropTypes.number,
+    slideStyle: Animated.View.propTypes.style,
+    shouldOptimizeUpdates: PropTypes.bool,
+    snapOnAndroid: PropTypes.bool,
+    onScrollViewScroll: PropTypes.func,
+    onSnapToItem: PropTypes.func
   };
 
-  static get defaultProps() {
-    return {
-      activeSlideOffset: 25,
-      animationFunc: 'timing',
-      animationOptions: {
-        duration: 600,
-        easing: Easing.elastic(1)
-      },
-      carouselHorizontalPadding: null,
-      carouselVerticalPadding: null,
-      containerCustomStyle: {},
-      contentContainerCustomStyle: {},
-      enableMomentum: false,
-      enableSnap: true,
-      firstItem: 0,
-      inactiveSlideOpacity: 1,
-      inactiveSlideScale: 0.9,
-      scrollEndDragDebounceValue: Platform.OS === 'ios' ? 50 : 150,
-      slideStyle: {},
-      shouldOptimizeUpdates: true,
-      snapOnAndroid: true,
-      swipeThreshold: 80
-    };
-  }
+  static defaultProps = {
+    activeSlideOffset: 25,
+    animationFunc: 'timing',
+    animationOptions: {
+      duration: 600,
+      easing: Easing.elastic(1)
+    },
+    carouselHorizontalPadding: null,
+    carouselVerticalPadding: null,
+    containerCustomStyle: {},
+    contentContainerCustomStyle: {},
+    enableMomentum: false,
+    enableSnap: true,
+    firstItem: 0,
+    inactiveSlideOpacity: 1,
+    inactiveSlideScale: 0.9,
+    scrollEndDragDebounceValue: Platform.OS === 'ios' ? 50 : 150,
+    slideStyle: {},
+    shouldOptimizeUpdates: true,
+    snapOnAndroid: true,
+    swipeThreshold: 80
+  };
 
   constructor(props) {
     super(props);
@@ -88,26 +83,15 @@ export default class Carousel extends Component {
     this._hasFiredEdgeItemCallback = false;
     this._canFireCallback = false;
     this._isShortSnapping = false;
-    this._initInterpolators = this._initInterpolators.bind(this);
-    this._onScroll = this._onScroll.bind(this);
-    this._onScrollBeginDrag = this._snapEnabled ? this._onScrollBeginDrag.bind(this) : null;
-    this._onScrollEnd = this._snapEnabled ? this._onScrollEnd.bind(this) : null;
-    this._onScrollEndDrag = !props.enableMomentum ? this._onScrollEndDrag.bind(this) : null;
-    this._onMomentumScrollEnd = props.enableMomentum ? this._onMomentumScrollEnd.bind(this) : null;
-    this._onTouchStart = this._onTouchStart.bind(this);
-    this._onTouchRelease = this._onTouchRelease.bind(this);
-    this._onLayout = this._onLayout.bind(this);
-    this._onSnap = this._onSnap.bind(this);
+    this._ignoreNextMomentum = false;
 
-    this._onScrollEndDragDebounced = !props.scrollEndDragDebounceValue ?
-      this._onScrollEndDragDebounced.bind(this) :
-      _debounce(
+    if (props.scrollEndDragDebounceValue) {
+      this._onScrollEndDragDebounced = _debounce(
         this._onScrollEndDragDebounced,
         props.scrollEndDragDebounceValue,
         { leading: false, trailing: true }
-      ).bind(this);
-
-    this._ignoreNextMomentum = false;
+      );
+    }
   }
 
   componentWillMount() {
@@ -138,11 +122,11 @@ export default class Carousel extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (this.props.shouldOptimizeUpdates === false) {
-      return true;
-    } else {
+    if (this.props.shouldOptimizeUpdates) {
       return shallowCompare(this, nextProps, nextState);
     }
+
+    return true;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -235,7 +219,7 @@ export default class Carousel extends Component {
     });
   }
 
-  _initInterpolators(props = this.props) {
+  _initInterpolators = (props = this.props) => {
     const { firstItem } = props;
     const _firstItem = this._getFirstItem(firstItem, props);
     let interpolators = [];
@@ -299,7 +283,7 @@ export default class Carousel extends Component {
     ]);
   }
 
-  _onScroll(event) {
+  _onScroll = (event) => {
     const { enableMomentum, onScroll, onScrollViewScroll } = this.props;
     const { activeItem } = this.state;
 
@@ -346,33 +330,46 @@ export default class Carousel extends Component {
 
   }
 
-  _onTouchStart() {
-  }
+  _onScrollBeginDrag = (event) => {
+    if (!this._snapEnabled) {
+      return;
+    }
 
-  _onScrollBeginDrag(event) {
     this._scrollStartOffset = this._getScrollOffset(event);
     this._scrollStartActive = this._getActiveItem(this._scrollStartOffset);
     this._ignoreNextMomentum = false;
     this._canFireCallback = false;
   }
 
-  _onScrollEndDrag(event) {
+  _onScrollEndDrag = (event) => {
+    if (!this.props.enableMomentum) {
+      return;
+    }
+
     this._onScrollEndDragDebounced();
   }
 
-  _onScrollEndDragDebounced(event) {
+  _onScrollEndDragDebounced = (event) => {
     if (this._scrollview && this._onScrollEnd) {
       this._onScrollEnd();
     }
   }
 
-  _onMomentumScrollEnd(event) {
+  _onMomentumScrollEnd = (event) => {
+    if (!this.props.enableMomentum) {
+      return;
+    }
+
     if (this._scrollview && this._onScrollEnd) {
       this._onScrollEnd();
     }
   }
 
-  _onScrollEnd(event) {
+  _onScrollEnd = (event) => {
+    if (!this._snapEnabled) {
+      return;
+    }
+
     if (this._ignoreNextMomentum) {
       this._ignoreNextMomentum = false;
       return;
@@ -387,7 +384,7 @@ export default class Carousel extends Component {
     }
   }
 
-  _onTouchRelease(event) {
+  _onTouchRelease = (event) => {
     if (this.props.enableMomentum && Platform.OS === 'ios') {
       clearTimeout(this._snapNoMomentumTimeout);
       this._snapNoMomentumTimeout = setTimeout(() => {
@@ -396,7 +393,7 @@ export default class Carousel extends Component {
     }
   }
 
-  _onLayout(event) {
+  _onLayout = (event) => {
     const { onLayout } = this.props;
 
     this._calcCardPositions();
@@ -437,7 +434,7 @@ export default class Carousel extends Component {
     }
   }
 
-  _onSnap(index) {
+  _onSnap = (index) => {
     const { enableMomentum } = this.props;
 
     const itemsLength = this._positions.length;
@@ -556,7 +553,16 @@ export default class Carousel extends Component {
   }
 
   _childSlides() {
-    const { slideStyle, inactiveSlideScale, inactiveSlideOpacity, inactiveOpacityInterpolation } = this.props;
+    const {
+      slideStyle,
+      inactiveSlideScale,
+      inactiveSlideOpacity,
+      inactiveOpacityInterpolation,
+      frontCardColor,
+      backCardColor,
+      cardPadding,
+      cardBorder
+    } = this.props;
     const { activeItem } = this.state;
     const { opacityValues, animatedValues } = this.state;
     const { data } = this.props;
@@ -605,6 +611,12 @@ export default class Carousel extends Component {
             disableScroll={() => this.disableScroll()}
             onOpenCard={() => this._openCard(index)}
             onCloseCard={() => this._closeCard(index)}
+            renderFrontCard={this.props.renderFrontCard}
+            renderBackCard={this.props.renderBackCard}
+            frontCardColor={frontCardColor}
+            cardPadding={cardPadding}
+            backCardColor={backCardColor}
+            cardBorder={cardBorder}
           />
         </Animated.View>
       );
@@ -641,6 +653,9 @@ export default class Carousel extends Component {
       enableMomentum,
       carouselHorizontalPadding,
       carouselVerticalPadding,
+      paginationColor,
+      headerCloseIconUrl,
+      headerDefaultIconUrl,
 
       sliderWidth,
       cardWidth,
@@ -690,10 +705,7 @@ export default class Carousel extends Component {
     const pagingEnabled = this._isFullScreen();
 
     return (
-      <LinearGradient
-        colors={['#c7d0d9', '#a1acbe', '#91a2b6']}
-        style={{ flex: 1 }}
-      >
+      <View style={{ flex: 1 }}>
         <Animated.ScrollView
           decelerationRate={0.9}
           scrollEventThrottle={16}
@@ -718,7 +730,6 @@ export default class Carousel extends Component {
           onScrollEndDrag={this._onScrollEndDrag}
           onMomentumScrollEnd={this._onMomentumScrollEnd}
           onResponderRelease={this._onTouchRelease}
-          onTouchStart={this._onTouchStart}
           onLayout={this._onLayout}
           automaticallyAdjustContentInsets={false}
           pagingEnabled={pagingEnabled}
@@ -731,13 +742,16 @@ export default class Carousel extends Component {
           isCardFull={!dragEnabled}
           onLocationPress={() => this.cards[activeItem].hideCardFull(activeItem)}
           onClosePress={() => this.cards[activeItem].hideCardFull(activeItem)}
+          headerCloseIconUrl={headerCloseIconUrl}
+          headerDefaultIconUrl={headerDefaultIconUrl}
         />
         <Pagination
           index={activeItem + 1}
           length={data.length}
           animatedValue={animatedValues[activeItem]}
+          color={paginationColor}
         />
-      </LinearGradient>
+      </View>
     );
   }
 }

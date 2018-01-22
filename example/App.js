@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
-import { AppLoading, Asset } from 'expo';
+import { AppLoading, Asset, LinearGradient } from 'expo';
 
 import ExpandingCollection from '@ramotion/react-native-expanding-collection';
+// import ExpandingCollection, { treshholds } from './src';
 
 import { cities } from './constants';
 
@@ -41,10 +42,16 @@ export default class App extends React.Component {
       />
     );
 
+
     return (
-      <ExpandingCollection
-        data={cities}
-      />
+      <LinearGradient
+        colors={['#c7d0d9', '#a1acbe', '#91a2b6']}
+        style={{ flex: 1 }}
+      >
+        <ExpandingCollection
+          data={cities}
+        />
+      </LinearGradient>
     );
   }
 }

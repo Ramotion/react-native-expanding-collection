@@ -15,23 +15,19 @@ import { icons } from '../constants';
 const { width } = Dimensions.get('window');
 
 class Header extends Component {
-  static get propTypes() {
-    return {
-      title: PropTypes.string.isRequired,
-      animatedValue: PropTypes.object.isRequired,
-      isCardFull: PropTypes.bool,
-      onLocationPress: PropTypes.func,
-      onClosePress: PropTypes.func
-    };
-  }
+  static propTypes = {
+    title: PropTypes.string.isRequired,
+    animatedValue: PropTypes.object.isRequired,
+    isCardFull: PropTypes.bool,
+    onLocationPress: PropTypes.func,
+    onClosePress: PropTypes.func
+  };
 
-  static get defaultProps() {
-    return {
-      isCardFull: false,
-      onLocationPress: () => {},
-      onClosePress: () => {}
-    };
-  }
+  static defaultProps = {
+    isCardFull: false,
+    onLocationPress: () => { },
+    onClosePress: () => { }
+  };
 
   render() {
     const {
@@ -39,7 +35,9 @@ class Header extends Component {
       animatedValue,
       isCardFull,
       onLocationPress,
-      onClosePress
+      onClosePress,
+      headerCloseIconUrl,
+      headerDefaultIconUrl
     } = this.props;
 
     return (
@@ -49,7 +47,7 @@ class Header extends Component {
           style={styles.headerIcon}
         />
         <Text style={styles.fontHeader}>
-          { title }
+          {title}
         </Text>
         <TouchableOpacity onPress={() => {
           if (isCardFull) {
@@ -59,7 +57,7 @@ class Header extends Component {
           }
         }}>
           <Animated.Image
-            source={{ uri: isCardFull ? icons.closeIcon : icons.crosshairIcon }}
+            source={{ uri: isCardFull ? headerCloseIconUrl : headerDefaultIconUrl }}
             style={[styles.headerIcon, {
               transform: [{
                 rotate: animatedValue.interpolate({

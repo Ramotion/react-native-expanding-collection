@@ -7,16 +7,18 @@ import {
 import PropTypes from 'prop-types';
 
 class Pagination extends Component {
-  static get propTypes() {
-    return {
-      index: PropTypes.number.isRequired,
-      length: PropTypes.number.isRequired,
-      animatedValue: PropTypes.object.isRequired
-    };
-  }
+  static propTypes = {
+    index: PropTypes.number.isRequired,
+    length: PropTypes.number.isRequired,
+    animatedValue: PropTypes.object.isRequired
+  };
+
+  static defaultProps = {
+    color: '#cbd2db'
+  };
 
   render() {
-    const { index, length, animatedValue } = this.props;
+    const { index, length, animatedValue, color } = this.props;
 
     return (
       <Animated.View
@@ -32,7 +34,7 @@ class Pagination extends Component {
           })
         }]}
       >
-        <Text style={styles.text}>
+        <Text style={[styles.text, { color }]}>
           {`${index}/${length}`}
         </Text>
       </Animated.View>
@@ -47,7 +49,6 @@ const styles = StyleSheet.create({
     zIndex: 0
   },
   text: {
-    color: '#cbd2db',
     fontSize: 16,
     fontWeight: '400'
   }
