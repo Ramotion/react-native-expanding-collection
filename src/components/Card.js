@@ -14,6 +14,7 @@ import {
   Platform
 } from 'react-native';
 import { BasicInfo, Stars, Users, Reviews, Review, ReviewsHeader } from './CardComponent'
+import { Constants } from 'expo';
 
 import Pagination from './Pagination';
 import Header from './Header';
@@ -24,14 +25,22 @@ const { width, height } = Dimensions.get('window');
 
 const isIOS = Platform.OS === 'ios';
 
-export const horizontalMargin = 10;
-export const itemWidth = width - 100;
+const isFullScreen = Constants.platform.ios.model.includes('iPhone 5');
+
+export const horizontalMargin = isFullScreen ? 30 : 10;
+export const itemWidth = isFullScreen ? width - 60 : width - 100;
 export const sliderWidth = width;
-const slideWidth = itemWidth - horizontalMargin * 2;
-const itemHeight = height / 2;
-const cardBaseWidth = width * 0.7;
+
+const cardItemWidth = isFullScreen ? width - 60 : itemWidth;
+
+const slideWidth = isFullScreen ? width - horizontalMargin * 2 : itemWidth - horizontalMargin * 2;
+const itemHeight = isFullScreen ? height * 0.6 : height / 2;
+const cardBaseWidth = isFullScreen ? width * 0.8 : width * 0.7;
 const borderRadius = 8;
-const top = height / 7;
+const top = isFullScreen ? height / 10 : height / 7;
+
+const backCardWidth = isFullScreen ? (cardItemWidth + horizontalMargin) : (cardItemWidth + horizontalMargin * 2);
+const backCardLeft = isFullScreen ? (horizontalMargin / 2) : (cardItemWidth / 2 - horizontalMargin);
 
 const values = {
   closed: {
@@ -42,7 +51,7 @@ const values = {
     marginTop: top,
     paddingTop: itemHeight - top,
     top: -itemHeight + top,
-    infoHeight: itemHeight + 20,
+    infoHeight: isFullScreen ? itemHeight + 60 : itemHeight + 30,
   },
   full: {
     cardHeight: height * .3,
@@ -61,6 +70,8 @@ export default class Card extends Component {
 
   constructor(props) {
     super(props);
+
+    console.warn(JSON.stringify(Constants, null, 2));
 
     this.state = {
       status: CARD_STATUS.CLOSED,
@@ -360,7 +371,7 @@ export default class Card extends Component {
           opacity: 1 * (+isReady),
           width: y.interpolate({
             inputRange: treshholds,
-            outputRange: [width, itemWidth + (horizontalMargin * 2), itemWidth + (horizontalMargin * 2)]
+            outputRange: [width, isFullScreen ? width : itemWidth + (horizontalMargin * 2), itemWidth + (horizontalMargin * 2)]
           })
         }}
         scrollEnabled={scrolled}
@@ -386,7 +397,7 @@ export default class Card extends Component {
     }),
     width: y.interpolate({
       inputRange: treshholds,
-      outputRange: [width, itemWidth, itemWidth]
+      outputRange: [width, cardItemWidth, cardItemWidth]
     }),
     height: y.interpolate({
       inputRange: treshholds,
@@ -419,11 +430,11 @@ export default class Card extends Component {
     }),
     width: y.interpolate({
       inputRange: [...treshholds, 1],
-      outputRange: [width, itemWidth + horizontalMargin * 2, 0, 0]
+      outputRange: [width, backCardWidth, 0, 0]
     }),
     left: y.interpolate({
       inputRange: treshholds,
-      outputRange: [0, 0, itemWidth / 2 - horizontalMargin],
+      outputRange: [0, isFullScreen ? backCardLeft : 0, backCardLeft],
     }),
     top: y.interpolate({
       inputRange: treshholds,

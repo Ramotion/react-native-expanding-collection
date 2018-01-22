@@ -3,7 +3,7 @@ import { BackHandler, ViewPagerAndroid, Dimensions, View, ScrollView, Animated, 
 import PropTypes from 'prop-types';
 import shallowCompare from 'react-addons-shallow-compare';
 import _debounce from 'lodash.debounce';
-import { LinearGradient } from 'expo';
+import { LinearGradient, Constants } from 'expo';
 
 const IS_RTL = I18nManager.isRTL;
 const { width, height } = Dimensions.get('window');
@@ -459,8 +459,9 @@ export default class Carousel extends Component {
   }
 
   _closeNotVisibleCards = (index) => {
+    const def = this._isFullScreen() ? 0 : 1;
     for (let i = 0; i < this._openCards.length; i++) {
-      if (index - 1 === i || index === i || index + 1 === i) {
+      if (index - def === i || index === i || index + def === i) {
         continue;
       }
 
@@ -626,6 +627,10 @@ export default class Carousel extends Component {
     this._openCards[index] = false;
   }
 
+  _isFullScreen = () => {
+    return Constants.platform.ios.model.includes('iPhone 5');
+  }
+
   render() {
     const {
       sliderHeight,
@@ -682,6 +687,8 @@ export default class Carousel extends Component {
       }
     ];
 
+    const pagingEnabled = this._isFullScreen();
+
     return (
       <LinearGradient
         colors={['#c7d0d9', '#a1acbe', '#91a2b6']}
@@ -713,6 +720,8 @@ export default class Carousel extends Component {
           onResponderRelease={this._onTouchRelease}
           onTouchStart={this._onTouchStart}
           onLayout={this._onLayout}
+          automaticallyAdjustContentInsets={false}
+          pagingEnabled={pagingEnabled}
         >
           {this._childSlides()}
         </Animated.ScrollView>
