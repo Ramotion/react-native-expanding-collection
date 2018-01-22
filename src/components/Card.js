@@ -71,11 +71,20 @@ export default class Card extends Component {
 
   componentWillMount() {
     const { animatedValue } = this.props;
+    const { status } = this.state;
 
     if (isIOS) {
       this._panResponder = PanResponder.create({
-        onMoveShouldSetResponderCapture: () => true,
-        onMoveShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: (evt, { dx, dy }) => {
+          const draggedDown = dy > 30;
+          const draggedUp = dy < -30;
+          const draggedLeft = dx < -30;
+          const draggedRight = dx > 30;
+
+          const result = draggedDown || draggedUp || draggedLeft || draggedRight;
+
+          return result;
+        },
         onPanResponderRelease: this.handleRelease,
         onPanResponderTerminate: this.handleRelease
       });
@@ -96,7 +105,7 @@ export default class Card extends Component {
   handleRelease = (evt, { dx, dy }) => {
     const { animatedValue, index, enableScroll } = this.props;
     const isCardFull = this.state.status === CARD_STATUS.FULL;
-
+    console.warn('handleRelase', dx, dy);
     if (!isCardFull && dy >= 40) {
       animatedValue.flattenOffset();
       this.setState({ status: CARD_STATUS.CLOSED });
@@ -286,6 +295,7 @@ export default class Card extends Component {
         <TouchableOpacity
           style={{ flex: 1 }}
           activeOpacity={1}
+          // onPress={() => { console.warn('renderFront: onPress'); }}
           onPress={() => this.handlePress(index)}
         >
           {this.renderFrontView(data, y)}
