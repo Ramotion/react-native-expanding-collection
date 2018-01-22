@@ -1,8 +1,8 @@
 {
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 1352,
-  "expoServerNgrokUrl": "https://m9-vcy.mikhail-sh.example.exp.direct",
-  "packagerNgrokUrl": "https://packager.m9-vcy.mikhail-sh.example.exp.direct",
-  "ngrokPid": 1363
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null
 }
