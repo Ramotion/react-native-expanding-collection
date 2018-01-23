@@ -77,8 +77,8 @@ export default class Carousel extends Component {
     };
 
     this.cards = [];
-    this._openCards = [];
     this._positions = [];
+    this._listOfOpenCards = {};
     this._currentContentOffset = 0;
     this._hasFiredEdgeItemCallback = false;
     this._canFireCallback = false;
@@ -100,7 +100,6 @@ export default class Carousel extends Component {
     this.props.data.forEach(() => {
       animatedValues.push(new Animated.Value(0));
       opacityValues.push(new Animated.Value(0));
-      this._openCards.push(false);
     });
 
     this.setState({ opacityValues, animatedValues });
@@ -239,7 +238,7 @@ export default class Carousel extends Component {
       event.nativeEvent.contentOffset['x']) || 0;
   }
 
-  _getActiveItem(offset) {
+  _calcNewActiveItem(offset) {
     const { activeSlideOffset } = this.props;
 
     const center = this._getCenter(offset);
@@ -288,7 +287,7 @@ export default class Carousel extends Component {
     const { activeItem } = this.state;
 
     const scrollOffset = this._getScrollOffset(event);
-    const newActiveItem = this._getActiveItem(scrollOffset);
+    const newActiveItem = this._calcNewActiveItem(scrollOffset);
     const itemsLength = this._positions.length;
     let animations = [];
     this._currentContentOffset = scrollOffset;
@@ -336,7 +335,7 @@ export default class Carousel extends Component {
     }
 
     this._scrollStartOffset = this._getScrollOffset(event);
-    this._scrollStartActive = this._getActiveItem(this._scrollStartOffset);
+    this._scrollStartActive = this._calcNewActiveItem(this._scrollStartOffset);
     this._ignoreNextMomentum = false;
     this._canFireCallback = false;
   }
@@ -376,7 +375,7 @@ export default class Carousel extends Component {
     }
 
     this._scrollEndOffset = this._currentContentOffset;
-    this._scrollEndActive = this._getActiveItem(this._scrollEndOffset);
+    this._scrollEndActive = this._calcNewActiveItem(this._scrollEndOffset);
 
     if (this._snapEnabled) {
       const delta = this._scrollEndOffset - this._scrollStartOffset;
@@ -457,15 +456,13 @@ export default class Carousel extends Component {
 
   _closeNotVisibleCards = (index) => {
     const def = this._isFullScreen() ? 0 : 1;
-    for (let i = 0; i < this._openCards.length; i++) {
-      if (index - def === i || index === i || index + def === i) {
-        continue;
+    
+    Object.keys(this._listOfOpenCards).map((key) => {
+      if (index != key && (index - def != key && index + def != key)) {
+        delete this._listOfOpenCards[key];
+        this.cards[key].closeCard();
       }
-
-      if (this._openCards[i] && this.cards[i]) {
-        this.cards[i].closeCard();
-      }
-    }
+    });
   }
 
   snapToItem(index, animated = true, fireCallback = true, initial = false) {
@@ -632,11 +629,11 @@ export default class Carousel extends Component {
   }
 
   _openCard = index => {
-    this._openCards[index] = true;
+    this._listOfOpenCards[index] = true;
   }
 
   _closeCard = index => {
-    this._openCards[index] = false;
+    delete this._listOfOpenCards[index];
   }
 
   _isFullScreen = () => {
