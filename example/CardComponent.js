@@ -7,13 +7,21 @@ import PropTypes from 'prop-types';
 import { MapView } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 
-import { icons } from '../constants';
-import { treshholds } from './Card';
+const icons = {
+  locationIcon: 'https://image.flaticon.com/icons/png/512/67/67347.png',
+  pinIcon: 'http://icons.iconarchive.com/icons/icons8/ios7/512/Messaging-Pin-icon.png',
+  userIcon: 'http://icons.iconarchive.com/icons/iconsmind/outline/512/Administrator-icon.png',
+  magifyIcon: 'https://d30y9cdsu7xlg0.cloudfront.net/png/95-200.png',
+  locationIconFull: 'https://cdn3.iconfinder.com/data/icons/pyconic-icons-1-2/512/location-pin-512.png',
+  starIconFull: 'https://icons.iconarchive.com/icons/custom-icon-design/mini/48/Star-full-icon.png',
+  starIconOutline: 'https://icons.iconarchive.com/icons/custom-icon-design/mini/48/Star-empty-icon.png',
+  thumbUpIcon: 'https://image.flaticon.com/icons/png/128/20/20664.png'
+};
 
 const { width } = Dimensions.get('window');
 
 const BasicInfo = ({
-  blob, y, latitude, longitude
+  blob, y, latitude, longitude, treshholds
 }) => (
   <Animated.View style={[styles.contentBase, {
     height: y.interpolate({
@@ -35,10 +43,11 @@ BasicInfo.propTypes = {
   blob: PropTypes.string.isRequired,
   y: PropTypes.object.isRequired,
   latitude: PropTypes.number.isRequired,
-  longitude: PropTypes.number.isRequired
+  longitude: PropTypes.number.isRequired,
+  treshholds: PropTypes.array.isRequired
 };
 
-const Stars = ({ rating, id, y }) => {
+const Stars = ({ rating, id, y, treshholds }) => {
   const getStarsStyle = y => ({
     height: y.interpolate({
       inputRange: treshholds,
@@ -72,10 +81,11 @@ const Stars = ({ rating, id, y }) => {
 Stars.propTypes = {
   rating: PropTypes.number.isRequired,
   id: PropTypes.string.isRequired,
-  y: PropTypes.object.isRequired
+  y: PropTypes.object.isRequired,
+  treshholds: PropTypes.array.isRequired
 };
 
-const Review = ({ review, y }) => (
+const Review = ({ review, y, treshholds }) => (
   <Animated.View style={[styles.reviewWrapper, {
     height: y.interpolate({
       inputRange: [-200, -150, -101, -100, 0],
@@ -110,18 +120,20 @@ const Review = ({ review, y }) => (
 );
 Review.propTypes = {
   y: PropTypes.object.isRequired,
-  review: PropTypes.object.isRequired
+  review: PropTypes.object.isRequired,
+  treshholds: PropTypes.array.isRequired
 };
 
-const Reviews = ({ y, reviews }) => reviews.map((review, idx) => (
-  <Review key={`review_${idx}`} review={review} y={y} />
+const Reviews = ({ y, reviews, treshholds }) => reviews.map((review, idx) => (
+  <Review key={`review_${idx}`} review={review} y={y} treshholds={treshholds} />
 ));
 Reviews.propTypes = {
   y: PropTypes.object.isRequired,
-  reviews: PropTypes.arrayOf(Review.propTypes.review).isRequired
+  reviews: PropTypes.arrayOf(Review.propTypes.review).isRequired,
+  treshholds: PropTypes.array.isRequired
 };
 
-const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude }) => {
+const ReviewsHeader = ({ id, rating, blob, y, latitude, longitude, treshholds }) => {
   const getHeaderStyle = y => ({
     height: y.interpolate({
       inputRange: treshholds,
@@ -202,11 +214,12 @@ ReviewsHeader.propTypes = {
   blob: PropTypes.string.isRequired,
   y: PropTypes.object.isRequired,
   latitude: PropTypes.number.isRequired,
-  longitude: PropTypes.number.isRequired
+  longitude: PropTypes.number.isRequired,
+  treshholds: PropTypes.array.isRequired
 };
 
 
-const Users = ({ reviews, y }) => {
+const Users = ({ reviews, y, treshholds }) => {
   const getUsersStyle = y => ({
     height: y.interpolate({
       inputRange: treshholds,
@@ -268,7 +281,8 @@ const Users = ({ reviews, y }) => {
 };
 Users.propTypes = {
   y: PropTypes.object.isRequired,
-  reviews: Reviews.propTypes.reviews
+  reviews: Reviews.propTypes.reviews,
+  treshholds: PropTypes.array.isRequired
 };
 
 const styles = StyleSheet.create({

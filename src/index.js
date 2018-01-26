@@ -65,4 +65,4 @@ export default class ExpandingCollection extends Component {
   }
 }
 
-export { treshholds } from './components/Card';
+export { treshholds, values } from './components/Card';
